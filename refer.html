@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Referral | InvestPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+:root {
+  --primary-color: #ffa500;
+  --bg-color: #fff;
+  --text-color: #333;
+}
+* {box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif;}
+body {background: var(--bg-color); color: var(--text-color); line-height: 1.6; display:flex; flex-direction:column; min-height:100vh;}
+
+/* Page Loader */
+#pageLoader{
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(255,255,255,0.95); display:flex; justify-content:center; align-items:center; flex-direction:column;
+  z-index:3000;
+}
+#pageLoader .spinner{
+  border:5px solid #fff;
+  border-top:5px solid var(--primary-color);
+  border-radius:50%;
+  width:60px; height:60px;
+  animation: spin 1s linear infinite;
+  margin-bottom:1rem;
+}
+#pageLoader .text{font-weight:600;color:var(--primary-color); font-size:1rem;}
+
+/* Header */
+header {
+  height: 70px; display: flex; justify-content: space-between; align-items: center;
+  padding: 0 2rem; background: var(--bg-color); box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  position: sticky; top: 0; z-index: 1000;
+}
+header .logo {
+  font-size: 1.5rem; font-weight: 700; color: var(--primary-color);
+  display:flex; flex-direction: column; line-height:1.1;
+}
+header .logo small {font-size:0.8rem; font-weight:400; color:#555555;}
+header .logout-btn {
+  background: var(--primary-color); color: #fff; padding: 0.5rem 1.2rem;
+  border-radius: 25px; text-decoration: none; transition: transform 0.3s, box-shadow 0.3s;
+  display:flex; align-items:center; gap:0.5rem;
+}
+header .logout-btn:hover {transform: scale(1.05); box-shadow: 0 4px 15px rgba(255,165,0,0.4);}
+
+/* Container */
+main{flex:1; opacity:0; transition: opacity 0.5s ease;}
+.refer-container {
+  max-width: 900px; margin: 2rem auto; padding: 2rem; background: #fff5e6;
+  border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+}
+.ref-code {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff3e0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-weight: 600;
+}
+.copy-btn {
+  padding: 0.5rem 1rem; background: var(--primary-color); color: #fff;
+  border: none; border-radius: 25px; cursor: pointer; display:flex; align-items:center; gap:0.5rem;
+}
+.stats {display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;}
+.stat-box {
+  flex: 1; min-width: 150px; background: #fff3e0; padding: 1rem; border-radius: 10px; text-align: center;
+  display:flex; flex-direction:column; gap:0.5rem; align-items:center; font-weight:600;
+}
+.stat-box i {font-size:1.3rem; color: var(--primary-color);}
+.stat-box span {display: block; font-size: 1.2rem; color: var(--primary-color);}
+.ref-table {width: 100%; border-collapse: collapse;}
+.ref-table th, .ref-table td {border: 1px solid #ddd; padding: 0.8rem; text-align: center;}
+.ref-table th {background: var(--primary-color); color: #fff;}
+.ref-approved {color: green; font-weight: 600;}
+.ref-pending {color: #cc6600; font-weight: 600;}
+.ref-none {color: #999; font-weight: 600;}
+.notification {
+  max-width: 900px; margin: 1rem auto; padding: 1rem;
+  background: #ffebcc; color: #cc6600; font-weight: 600;
+  text-align: center; border-radius: 10px; display: none;
+}
+footer {
+  background: #fff5e6; padding: 1.5rem 2rem; text-align: center;
+  font-size: 0.9rem; color: #555555; flex-shrink: 0;
+}
+@media(max-width:768px){
+  .stats{flex-direction:column;}
+  .ref-code{flex-direction:column; gap:0.5rem;}
+}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div id="pageLoader">
+  <div class="spinner"></div>
+  <div class="text">Loading Referral Page...</div>
+</div>
+
+<header>
+  <div class="logo">InvestPro<br><small>Roshan Pakistan</small></div>
+  <a href="dashboard.html" class="logout-btn"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+</header>
+
+<main>
+<div class="refer-container">
+  <h2><i class="fa-solid fa-users"></i> Referral Program</h2>
+  <div class="notification" id="notification">Message here</div>
+
+  <div class="ref-code">
+    <span id="refCode"><i class="fa-solid fa-key"></i> XXXXXX</span>
+    <button class="copy-btn" id="copyBtn"><i class="fa-solid fa-copy"></i> Copy Code</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box"><i class="fa-solid fa-user-plus"></i> Users Registered: <span id="registeredCount">0</span></div>
+    <div class="stat-box"><i class="fa-solid fa-circle-check"></i> Referrals Approved: <span id="refCount">0</span></div>
+    <div class="stat-box"><i class="fa-solid fa-clock"></i> Not Approved: <span id="refNotApprovedCount">0</span></div>
+    <div class="stat-box"><i class="fa-solid fa-money-bill-wave"></i> Referral Bonus: <span id="refBalance">0 PKR</span></div>
+  </div>
+
+  <table class="ref-table" id="refTable">
+    <thead><tr>
+      <th><i class="fa-solid fa-envelope"></i> Email</th>
+      <th><i class="fa-solid fa-chart-line"></i> Investment Status</th>
+    </tr></thead>
+    <tbody id="refBody"><tr><td colspan="2">Loading...</td></tr></tbody>
+  </table>
+</div>
+</main>
+
+<footer>
+  &copy; 2025 InvestPro. All rights reserved.
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
+  projectId: "khanbaba-2d4e5"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const REF_BONUS = 60;
+let currentUser = null;
+
+const refCodeEl = document.getElementById("refCode");
+const copyBtn = document.getElementById("copyBtn");
+const refCountEl = document.getElementById("refCount");
+const registeredCountEl = document.getElementById("registeredCount");
+const refNotApprovedEl = document.getElementById("refNotApprovedCount");
+const refBalanceEl = document.getElementById("refBalance");
+const refBody = document.getElementById("refBody");
+const notification = document.getElementById("notification");
+const pageLoader = document.getElementById("pageLoader");
+const mainContent = document.querySelector("main");
+
+function showNotification(msg){
+  notification.innerText = msg;
+  notification.style.display='block';
+  setTimeout(()=>{ notification.style.display='none'; },4000);
+}
+
+function generateCode(length=6){
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code=''; for(let i=0;i<length;i++){ code+=chars.charAt(Math.floor(Math.random()*chars.length)); }
+  return code;
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){window.location.href='login.html';return;}
+  currentUser = user;
+
+  const userRef = ref(db, 'users/'+user.uid);
+  const snap = await get(userRef);
+  let data = snap.val() || {};
+  if(!data.referralCode){
+    const newCode = generateCode();
+    await update(userRef, { referralCode: newCode });
+    data.referralCode = newCode;
+  }
+  refCodeEl.innerText = data.referralCode || "N/A";
+
+  listenReferrals();
+
+  // Hide loader and show main content
+  pageLoader.style.display='none';
+  mainContent.style.opacity='1';
+});
+
+copyBtn.addEventListener("click",()=>{
+  navigator.clipboard.writeText(refCodeEl.innerText);
+  showNotification("Referral code copied!");
+});
+
+function listenReferrals(){
+  onValue(ref(db,'users'), async (snapshot)=>{
+    const users = snapshot.val() || {};
+    const investSnap = await get(ref(db,'investments'));
+    const allInvest = investSnap.val() || {};
+
+    let registered = 0, approved = 0, notApproved = 0, totalBonus = 0;
+    refBody.innerHTML='';
+
+    for(const uid in users){
+      const u = users[uid];
+      if(u.referredBy === currentUser.uid){
+        registered++;
+        const email = u.email || "Unknown";
+        const invs = allInvest[uid] ? Object.values(allInvest[uid]) : [];
+        let status = "No Investment";
+        let approvedThis = false;
+
+        if(invs.length>0){
+          if(invs.some(inv=>inv.status==="Approved")){status="Approved"; approvedThis=true;}
+          else if(invs.some(inv=>inv.status==="Pending")){status="Pending";}
+          else{status="Rejected";}
+        }
+
+        if(approvedThis){
+          approved++; totalBonus += REF_BONUS;
+          const checkRef = ref(db, `users/${currentUser.uid}/creditedReferrals/${uid}`);
+          const snap = await get(checkRef);
+          if(!snap.exists()){
+            const userRef = ref(db, `users/${currentUser.uid}`);
+            const userSnap = await get(userRef);
+            const data = userSnap.val() || {};
+            const newBalance = (data.balance || 0) + REF_BONUS;
+            await update(userRef, {
+              balance: newBalance,
+              refBalance: (data.refBalance || 0) + REF_BONUS,
+              [`creditedReferrals/${uid}`]: true
+            });
+            showNotification(`Referral ${email} approved! +${REF_BONUS} PKR added to dashboard.`);
+          }
+        } else { notApproved++; }
+
+        let icon = status==='Approved' ? '<i class="fa-solid fa-circle-check"></i>' :
+                   status==='Pending' ? '<i class="fa-solid fa-clock"></i>' :
+                   '<i class="fa-solid fa-circle-xmark"></i>';
+
+        refBody.innerHTML += `<tr>
+          <td>${email}</td>
+          <td class="${status==='Approved'?'ref-approved':status==='Pending'?'ref-pending':'ref-none'}">${icon} ${status}</td>
+        </tr>`;
+      }
+    }
+
+    registeredCountEl.innerText = registered;
+    refCountEl.innerText = approved;
+    refNotApprovedEl.innerText = notApproved;
+    refBalanceEl.innerText = totalBonus + " PKR";
+  });
+}
+</script>
+</body>
+</html>

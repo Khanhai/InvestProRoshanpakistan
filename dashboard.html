@@ -1,0 +1,295 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Dashboard | InvestPro</title>  
+<link rel="icon" href="favicon.ico">  
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>  
+<style>  
+:root{  
+  --primary:#FFA500;  
+  --bg:#fff;  
+  --card:#fff5e6;  
+  --text:#333;  
+  --header-height:70px;  
+  --status-approved:#28a745;  
+  --status-pending:#ff9900;  
+  --status-none:#888;  
+}  
+  
+/* Global */  
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}  
+body{background:var(--bg);color:var(--text);line-height:1.6;display:flex;flex-direction:column;min-height:100vh;}  
+  
+/* Page Loader */  
+#pageLoader{  
+  position:fixed;  
+  top:0; left:0;  
+  width:100%; height:100%;  
+  background:rgba(255,255,255,0.95);  
+  display:flex; justify-content:center; align-items:center;  
+  flex-direction:column;  
+  z-index:3000;  
+}  
+#pageLoader .spinner{  
+  border:5px solid #fff;  
+  border-top:5px solid var(--primary);  
+  border-radius:50%;  
+  width:60px; height:60px;  
+  animation:spin 1s linear infinite;  
+  margin-bottom:1rem;  
+}  
+#pageLoader .text{font-weight:600;color:var(--primary);font-size:1rem;}  
+  
+/* Header */  
+header{height:var(--header-height);display:flex;justify-content:space-between;align-items:center;padding:0 2rem;background:var(--bg);box-shadow:0 2px 10px rgba(0,0,0,.05);}  
+header .logo{font-size:1.5rem;font-weight:700;color:var(--primary);display:flex;flex-direction:column;line-height:1;}  
+header .logo small{font-size:.8rem;font-weight:400;color:#555;margin-top:2px;}  
+header .logout-btn{background:var(--primary);color:#fff;padding:.55rem 1.3rem;border-radius:25px;text-decoration:none;display:flex;align-items:center;gap:.5rem;font-weight:600;transition: transform .3s, box-shadow .3s;}  
+header .logout-btn:hover{transform:scale(1.05);box-shadow:0 4px 15px rgba(255,165,0,.4);}  
+  
+/* Main content */  
+main{flex:1;padding:2rem 0;opacity:0;transition:opacity .5s ease;}  
+  
+/* Summary Cards */  
+.summary-cards{max-width:900px;margin:0 auto 1.5rem auto;display:flex;gap:1rem;flex-wrap:wrap;}  
+.summary-card{flex:1;min-width:150px;padding:1rem;background:var(--card);border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.05);display:flex;flex-direction:column;align-items:center;gap:.5rem;text-align:center;}  
+.summary-card h4{color:var(--primary);font-weight:600;font-size:1rem;}  
+.summary-card p{font-weight:600;font-size:1.1rem;color:#555;}  
+  
+/* Dashboard Info */  
+.dashboard-info{max-width:900px;margin:0 auto 2rem auto;padding:2rem;background:var(--card);border-radius:18px;box-shadow:0 10px 25px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:.8rem;opacity:0;transition:opacity .5s;}  
+.dashboard-info h3{color:var(--primary); font-weight:600;}  
+.dashboard-info p{font-size:1rem;color:#555;}  
+#investmentStatus{font-weight:600;}  
+  
+/* Notification */  
+.notification{max-width:900px;margin:1rem auto;padding:1rem;background:#ffebcc;color:#cc6600;font-weight:600;text-align:center;border-radius:10px;display:none;animation:slideIn .4s ease;}  
+  
+/* Buttons */  
+.dashboard-buttons{display:flex;flex-direction:column;max-width:900px;margin:0 auto;gap:1rem;opacity:0;transition:opacity .5s;}  
+.dashboard-buttons button{width:100%;padding:1rem;font-size:1.1rem;font-weight:600;border:none;border-radius:15px;cursor:pointer;background:var(--primary);color:#fff;display:flex;align-items:center;gap:.6rem;justify-content:center;transition: transform .3s, box-shadow .3s;}  
+.dashboard-buttons button:hover{transform:scale(1.03);box-shadow:0 6px 20px rgba(255,165,0,.4);}  
+.dashboard-buttons button.locked{background:#ccc;cursor:not-allowed;box-shadow:none;}  
+  
+/* Footer */  
+footer{background:var(--card);text-align:center;font-size:.85rem;color:#555;padding:.8rem 0;flex-shrink:0;}  
+  
+/* Tab Bar */  
+.tab-bar{  
+  position:fixed;  
+  bottom:0;  
+  left:0;  
+  right:0;  
+  background:var(--card);  
+  display:flex;  
+  justify-content:space-around;  
+  align-items:center;  
+  padding:.6rem 0;  
+  border-top:1px solid #ddd;  
+  z-index:1000;  
+}  
+.tab-bar a{  
+  text-decoration:none;  
+  color:#555;  
+  font-size:.85rem;  
+  display:flex;  
+  flex-direction:column;  
+  align-items:center;  
+  transition:color .3s;  
+}  
+.tab-bar a.active{color:var(--primary);}  
+.tab-bar i{font-size:1.3rem;margin-bottom:2px;}  
+  
+/* Animations */  
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}  
+@keyframes slideIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}  
+@media(max-width:768px){.dashboard-info,.dashboard-buttons,.summary-cards{margin:1rem;}.dashboard-buttons button{font-size:1rem;padding:.8rem;}}  
+</style>  
+</head>  
+<body>  
+  
+<!-- Page Loader -->  
+<div id="pageLoader">  
+  <div class="spinner"></div>  
+  <div class="text">Loading Dashboard...</div>  
+</div>  
+  
+<header>  
+  <div class="logo">InvestPro<br><small>Roshan Pakistan</small></div>  
+  <a href="login.html" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>  
+</header>  
+  
+<main>  
+  
+  <!-- Summary Cards -->  
+  <div class="summary-cards animate__animated animate__fadeIn">  
+    <div class="summary-card">  
+      <h4>Total Investments</h4>  
+      <p id="totalInvestments">PKR 0.00</p>  
+    </div>  
+    <div class="summary-card">  
+      <h4>Referral Earnings</h4>  
+      <p id="referralEarnings">PKR 0.00</p>  
+    </div>  
+  </div>  
+  
+  <!-- User Info -->  
+  <div class="dashboard-info animate__animated animate__fadeIn">  
+    <h3 id="userName">User Name: Loading...</h3>  
+    <p id="userEmail">Email: Loading...</p>  
+    <p id="userBalance">Balance: PKR 0.00</p>  
+    <p id="investmentStatus">Investment Status: Loading...</p>  
+  </div>  
+  
+  <div class="notification" id="notification"></div>  
+  
+  <!-- Buttons -->  
+  <div class="dashboard-buttons animate__animated animate__fadeInUp">  
+    <button id="investBtn"><i class="fa-solid fa-wallet"></i> Invest</button>  
+    <button id="earnBtn" class="locked"><i class="fa-solid fa-coins"></i> Earn</button>  
+    <button id="spinBtn" class="locked"><i class="fa-solid fa-circle-notch"></i> Spin & Win</button>  
+    <button id="minesBtn" class="locked"><i class="fa-solid fa-bomb"></i> Mines Game</button>  
+    <button id="withdrawBtn"><i class="fa-solid fa-hand-holding-dollar"></i> Withdraw</button>  
+    <button id="referBtn"><i class="fa-solid fa-gift"></i> Refer</button>  
+  </div>  
+</main>  
+  
+<!-- Tab Bar -->  
+<div class="tab-bar">  
+  <a href="dashboard.html" class="active"><i class="fa-solid fa-house"></i> Home</a>  
+  <a href="invest.html"><i class="fa-solid fa-wallet"></i> Invest</a>  
+  <a href="earn.html"><i class="fa-solid fa-coins"></i> Earn</a>  
+  <a href="withdraw.html"><i class="fa-solid fa-hand-holding-dollar"></i> Withdraw</a>  
+  <a href="refer.html"><i class="fa-solid fa-gift"></i> Refer</a>  
+</div>  
+  
+<footer>  
+  &copy; 2025 InvestPro. All rights reserved.  
+</footer>  
+  
+<script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";  
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";  
+import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";  
+  
+const firebaseConfig = {  
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",  
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",  
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",  
+  projectId: "khanbaba-2d4e5"  
+};  
+const app = initializeApp(firebaseConfig);  
+const auth = getAuth(app);  
+const db = getDatabase(app);  
+  
+// Elements  
+const userNameEl=document.getElementById('userName');  
+const userEmailEl=document.getElementById('userEmail');  
+const userBalanceEl=document.getElementById('userBalance');  
+const investmentStatusEl=document.getElementById('investmentStatus');  
+const notification=document.getElementById('notification');  
+const investBtn=document.getElementById('investBtn');  
+const earnBtn=document.getElementById('earnBtn');  
+const spinBtn=document.getElementById('spinBtn');  
+const minesBtn=document.getElementById('minesBtn');  
+const withdrawBtn=document.getElementById('withdrawBtn');  
+const referBtn=document.getElementById('referBtn');  
+const totalInvestmentsEl=document.getElementById('totalInvestments');  
+const referralEarningsEl=document.getElementById('referralEarnings');  
+const mainContent=document.querySelector('main');  
+const pageLoader=document.getElementById('pageLoader');  
+  
+function showNotification(msg){  
+  notification.innerText=msg;  
+  notification.style.display='block';  
+  setTimeout(()=>notification.style.display='none',4000);  
+}  
+  
+// Auth check  
+let currentUser=null;  
+onAuthStateChanged(auth,user=>{  
+  if(!user) return window.location.href='login.html';  
+  currentUser=user;  
+  
+  pageLoader.style.display='none';  
+  mainContent.style.opacity='1';  
+  
+  userNameEl.innerText=`User Name: ${user.displayName || 'User'}`;  
+  userEmailEl.innerText=`Email: ${user.email}`;  
+  
+  onValue(ref(db,'users/'+user.uid+'/balance'),snap=>userBalanceEl.innerText=`Balance: PKR ${parseFloat(snap.val()||0).toFixed(2)}`);  
+  onValue(ref(db,'users/'+user.uid+'/refBalance'),snap=>referralEarningsEl.innerText=`PKR ${parseFloat(snap.val()||0).toFixed(2)}`);  
+  
+  onValue(ref(db,'investments/'+user.uid),snap=>{  
+    const investments=snap.val();  
+    let total=0;  
+    if(!investments){  
+      investmentStatusEl.innerText='Investment Status: No Investment';  
+      investmentStatusEl.style.color='var(--status-none)';  
+      lockButtons();  
+      totalInvestmentsEl.innerText='PKR 0.00';  
+      return;  
+    }  
+    const keys=Object.keys(investments);  
+    keys.forEach(k=>{total+=parseFloat(investments[k].amount||0)});  
+    totalInvestmentsEl.innerText=`PKR ${total.toFixed(2)}`;  
+  
+    const lastInvest=investments[keys[keys.length-1]];  
+    const status=(lastInvest.status||'No Investment').toLowerCase();  
+    investmentStatusEl.innerText=`Investment Status: ${status.charAt(0).toUpperCase()+status.slice(1)}`;  
+  
+    if(status==='approved'){  
+      investmentStatusEl.style.color='var(--status-approved)';  
+      unlockButtons();  
+      add50pkrOnce();  
+    } else if(status==='pending'){  
+      investmentStatusEl.style.color='var(--status-pending)';  
+      lockButtons();  
+    } else{  
+      investmentStatusEl.style.color='var(--status-none)';  
+      lockButtons();  
+    }  
+  });  
+});  
+  
+function lockButtons(){  
+  [earnBtn,spinBtn,minesBtn].forEach(btn=>{  
+    btn.classList.add('locked');  
+    btn.onclick=()=>showNotification('Invest first. Button locked until approval.');  
+  });  
+}  
+function unlockButtons(){  
+  earnBtn.classList.remove('locked');  
+  spinBtn.classList.remove('locked');  
+  minesBtn.classList.remove('locked');  
+  earnBtn.onclick=()=>window.location.href='earn.html';  
+  spinBtn.onclick=()=>window.location.href='spin.html';  
+  minesBtn.onclick=()=>window.location.href='mines.html';  
+}  
+  
+function add50pkrOnce(){  
+  const flagRef=ref(db,'users/'+currentUser.uid+'/added50pkr');  
+  get(flagRef).then(snap=>{  
+    if(!snap.val()){  
+      const balanceRef=ref(db,'users/'+currentUser.uid+'/balance');  
+      get(balanceRef).then(bsnap=>{  
+        const bal=bsnap.val()||0;  
+        update(ref(db,'users/'+currentUser.uid),{balance:bal+50,added50pkr:true});  
+        showNotification('Investment approved! +50 PKR added to your balance.');  
+      });  
+    }  
+  });  
+}  
+  
+// Other buttons  
+investBtn.onclick=()=>window.location.href='invest.html';  
+withdrawBtn.onclick=()=>window.location.href='withdraw.html';  
+referBtn.onclick=()=>window.location.href='refer.html';  
+</script>  
+  
+</body>  
+</html>

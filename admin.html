@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | InvestPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#FFA500;--bg:#fff;}
+body{font-family:Inter,sans-serif;background:var(--bg);padding:2rem;color:#333;}
+.section{max-width:950px;margin:2rem auto;padding:2rem;background:#fff5e6;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.05);}
+h2{color:var(--primary);text-align:center;margin-bottom:1rem;}
+.btn{padding:.6rem 1.2rem;border:none;border-radius:25px;font-weight:600;cursor:pointer;background:var(--primary);color:#fff;margin:.2rem;}
+.btn:hover{opacity:.9;}
+.btn-remove{background:red;}
+.table{width:100%;border-collapse:collapse;margin-top:1rem;}
+.table th,.table td{border:1px solid #ddd;padding:.6rem;text-align:center;}
+.table th{background:var(--primary);color:#fff;}
+img.proof{max-width:60px;border-radius:5px;}
+input,select{padding:.5rem;margin:.5rem 0;width:100%;border-radius:8px;border:1px solid #ccc;}
+.reset-btn{background:#555;color:#fff;}
+.restore-btn{background:green;color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ==== Methods ==== -->
+<div class="section">
+<h2>Investment Methods</h2>
+<label>Name</label><input id="methodName">
+<label>Number</label><input id="methodNumber">
+<label>Type</label><select id="methodType">
+  <option>JazzCash</option>
+  <option>EasyPaisa</option>
+  <option>Raast</option>
+  <option>Bank</option>
+</select>
+<button class="btn" id="addMethodBtn">Add Method</button>
+<table class="table" id="methodTable">
+  <thead>
+    <tr><th>Name</th><th>Number</th><th>Type</th><th>Action</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+<!-- ==== Withdraw Requests ==== -->
+<div class="section">
+<h2>Withdraw Requests</h2>
+<button class="btn reset-btn" id="resetWithdrawView">Reset Table View</button>
+<button class="btn restore-btn" id="restoreWithdrawView" style="display:none;">Restore Table</button>
+<table class="table" id="withdrawTable">
+<thead>
+<tr><th>User ID</th><th>Name</th><th>Number</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<!-- ==== Investment Requests ==== -->
+<div class="section">
+<h2>Investment Requests</h2>
+<button class="btn reset-btn" id="resetInvestView">Reset Table View</button>
+<button class="btn restore-btn" id="restoreInvestView" style="display:none;">Restore Table</button>
+<table class="table" id="investTable">
+<thead>
+<tr><th>User</th><th>Amount</th><th>Type</th><th>Proof</th><th>Status</th><th>Action</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<!-- ==== Earn Tasks ==== -->
+<div class="section">
+<h2>Earn Tasks</h2>
+<label>Description</label><input id="taskDesc">
+<label>Reward</label><input type="number" id="taskReward">
+<label>Cooldown (sec)</label><input type="number" id="taskTime">
+<button class="btn" id="addTaskBtn">Add Task</button>
+<table class="table" id="taskTable">
+<thead>
+<tr><th>Description</th><th>Reward</th><th>Cooldown</th><th>Action</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const cfg = {
+  apiKey:"AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
+  authDomain:"khanbaba-2d4e5.firebaseapp.com",
+  databaseURL:"https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
+  projectId:"khanbaba-2d4e5"
+};
+const app = initializeApp(cfg);
+const db = getDatabase(app);
+
+function btn(label, cls, cb){
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.className = "btn "+(cls||"");
+  b.onclick = cb;
+  return b;
+}
+
+/* --- Methods --- */
+const mT=document.querySelector("#methodTable tbody");
+function loadM(){
+  get(ref(db,"admin/investMethods")).then(s=>{
+    const d = s.val() || {};
+    mT.innerHTML="";
+    if(Object.keys(d).length){
+      for(const key in d){
+        const method = d[key];
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${method.name}</td><td>${method.number}</td><td>${method.type}</td>`;
+        const td=document.createElement("td");
+        td.appendChild(btn("Remove","btn-remove",()=>remove(ref(db,"admin/investMethods/"+key)).then(loadM)));
+        tr.appendChild(td);
+        mT.appendChild(tr);
+      }
+    } else mT.innerHTML="<tr><td colspan=4>No method</td></tr>";
+  });
+}
+document.getElementById("addMethodBtn").onclick=()=>{
+  const name = document.getElementById("methodName").value;
+  const number = document.getElementById("methodNumber").value;
+  const type = document.getElementById("methodType").value;
+  push(ref(db,"admin/investMethods"),{name, number, type}).then(loadM);
+};
+loadM();
+
+/* --- Withdraws --- */
+const wT = document.querySelector("#withdrawTable tbody");
+function loadW(){
+  onValue(ref(db,"withdrawals"), snapshot=>{
+    const data = snapshot.val() || {};
+    wT.innerHTML="";
+    for(const uid in data){
+      for(const wid in data[uid]){
+        const r = data[uid][wid];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${uid}</td><td>${r.name||''}</td><td>${r.number||''}</td><td>${r.type}</td><td>${r.amount}</td><td>${r.status||'Pending'}</td>`;
+        const actionTd = document.createElement("td");
+        if(r.status==="Pending"){
+          actionTd.appendChild(btn("Approve", null, async ()=>{
+            await update(ref(db,`withdrawals/${uid}/${wid}`), {status:"Approved"});
+            alert(`Withdraw approved for ${r.name}`);
+          }));
+          actionTd.appendChild(btn("Reject/Refund","btn-remove", async ()=>{
+            const userRef = ref(db,`users/${uid}`);
+            const snap = await get(userRef);
+            const userData = snap.val() || {};
+            const currentBalance = userData.balance || 0;
+            await update(userRef,{balance: currentBalance + (r.amount||0)});
+            await update(ref(db,`withdrawals/${uid}/${wid}`),{status:"Rejected"});
+            alert(`Withdraw rejected & refunded for ${r.name}`);
+          }));
+        } else actionTd.textContent = "-";
+        tr.appendChild(actionTd);
+        wT.appendChild(tr);
+      }
+    }
+    if(!wT.innerHTML) wT.innerHTML="<tr><td colspan=7>No withdraw requests</td></tr>";
+  });
+}
+loadW();
+
+/* --- Investments --- */
+const iT = document.querySelector("#investTable tbody");
+function loadI(){
+  onValue(ref(db,"investments"), snapshot=>{
+    const data = snapshot.val() || {};
+    iT.innerHTML="";
+    for(const uid in data){
+      for(const k in data[uid]){
+        const r = data[uid][k];
+        const proof = r.proof ? `<img src="${r.proof}" class="proof">` : "No Proof";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${uid}</td><td>${r.amount}</td><td>${r.type}</td><td>${proof}</td><td>${r.status||'Pending'}</td>`;
+        const actionTd = document.createElement("td");
+        if(r.status==="Pending"){
+          actionTd.appendChild(btn("Approve", null, async ()=>{await update(ref(db,`investments/${uid}/${k}`),{status:"Approved"}); alert(`Investment approved for ${uid}`);}));
+          actionTd.appendChild(btn("Reject","btn-remove", async ()=>{await update(ref(db,`investments/${uid}/${k}`),{status:"Rejected"}); alert(`Investment rejected for ${uid}`);}));
+        } else actionTd.textContent = "-";
+        tr.appendChild(actionTd);
+        iT.appendChild(tr);
+      }
+    }
+    if(!iT.innerHTML) iT.innerHTML="<tr><td colspan=6>No investments</td></tr>";
+  });
+}
+loadI();
+
+/* --- Earn Tasks --- */
+const tT = document.querySelector("#taskTable tbody");
+function loadT(){
+  get(ref(db,"admin/earnTask")).then(s=>{
+    const d = s.val()||{};
+    tT.innerHTML="";
+    for(const k in d){
+      const t = d[k];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${t.desc}</td><td>${t.reward}</td><td>${t.time}</td>`;
+      const actionTd = document.createElement("td");
+      actionTd.appendChild(btn("Remove","btn-remove", async ()=>{await remove(ref(db,'admin/earnTask/'+k)); loadT();}));
+      tr.appendChild(actionTd);
+      tT.appendChild(tr);
+    }
+    if(!tT.innerHTML) tT.innerHTML="<tr><td colspan=4>No tasks</td></tr>";
+  });
+}
+document.getElementById("addTaskBtn").onclick=()=>{
+  push(ref(db,"admin/earnTask"),{
+    desc: document.getElementById("taskDesc").value,
+    reward: +document.getElementById("taskReward").value,
+    time: +document.getElementById("taskTime").value
+  }).then(loadT);
+};
+loadT();
+
+/* --- Temporary Reset / Restore --- */
+const resetW = document.getElementById("resetWithdrawView");
+const restoreW = document.getElementById("restoreWithdrawView");
+resetW.onclick = ()=>{
+  wT.innerHTML="<tr><td colspan=7>Table view cleared (temporary, permanent history intact)</td></tr>";
+  resetW.style.display="none";
+  restoreW.style.display="inline-block";
+};
+restoreW.onclick = ()=>{
+  loadW();
+  restoreW.style.display="none";
+  resetW.style.display="inline-block";
+};
+
+const resetI = document.getElementById("resetInvestView");
+const restoreI = document.getElementById("restoreInvestView");
+resetI.onclick = ()=>{
+  iT.innerHTML="<tr><td colspan=6>Table view cleared (temporary, permanent history intact)</td></tr>";
+  resetI.style.display="none";
+  restoreI.style.display="inline-block";
+};
+restoreI.onclick = ()=>{
+  loadI();
+  restoreI.style.display="none";
+  resetI.style.display="inline-block";
+};
+</script>
+
+</body>
+</html>

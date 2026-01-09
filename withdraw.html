@@ -1,0 +1,371 @@
+<!DOCTYPE html>      
+<html lang="en">      
+<head>      
+<meta charset="UTF-8">      
+<meta name="viewport" content="width=device-width, initial-scale=1.0">      
+<title>Withdraw | InvestPro</title>      
+<link rel="icon" href="favicon.ico">      
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">      
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>      
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>      
+<style>      
+:root{      
+  --primary-color:#FFA500;      
+  --bg-color:#fff;      
+  --text-color:#333;      
+  --header-height:70px;      
+}      
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}      
+body{background: var(--bg-color); color: var(--text-color); line-height:1.6; display:flex; flex-direction:column; min-height:100vh;}      
+
+/* Header */      
+header{      
+  height: var(--header-height);      
+  display:flex;      
+  justify-content: space-between;      
+  align-items:center;      
+  padding:0 2rem;      
+  background: var(--bg-color);      
+  position: sticky;      
+  top:0;      
+  z-index:1000;      
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);      
+}      
+header .logo{      
+  font-size:1.5rem;      
+  font-weight:700;      
+  color: var(--primary-color);      
+  display:flex;      
+  flex-direction: column;      
+  line-height:1.1;      
+}      
+header .logo small{      
+  font-size:0.8rem;      
+  font-weight:400;      
+  color:#555555;      
+}      
+header .logout-btn{      
+  background: var(--primary-color);      
+  color:#fff;      
+  padding:0.5rem 1.2rem;      
+  border-radius:25px;      
+  text-decoration:none;      
+  transition: transform 0.3s, box-shadow 0.3s;      
+  display:flex; align-items:center; gap:0.5rem;      
+}      
+header .logout-btn:hover{transform:scale(1.05); box-shadow:0 4px 15px rgba(255,165,0,0.4);}      
+
+/* Container */      
+main{flex:1;}      
+.withdraw-container{      
+  max-width:900px;      
+  margin:2rem auto;      
+  padding:2rem;      
+  background:#fff5e6;      
+  border-radius:15px;      
+  box-shadow:0 8px 25px rgba(0,0,0,0.05);      
+  animation:fadeIn 1s ease;      
+}      
+.withdraw-container h2{color: var(--primary-color); margin-bottom:1.5rem; text-align:center; display:flex; align-items:center; justify-content:center; gap:0.5rem;}      
+
+/* Form */      
+.form-group{      
+  display:flex;      
+  flex-direction: column;      
+  margin-bottom:1rem;      
+}      
+.form-group label{margin-bottom:0.3rem; font-weight:600;}      
+.form-group input, .form-group select{      
+  padding:0.8rem 1rem;      
+  border:1px solid #ccc;      
+  border-radius:10px;      
+  outline:none;      
+  transition:border 0.3s;      
+}      
+.form-group input:focus, .form-group select:focus{border-color: var(--primary-color);}      
+
+.btn-container{position:relative; margin-top:1rem;}      
+.submit-btn{      
+  width:100%;      
+  padding:1rem;      
+  background: var(--primary-color);      
+  color:#fff;      
+  border:none;      
+  border-radius:25px;      
+  font-weight:600;      
+  cursor:pointer;      
+  transition: transform 0.3s, box-shadow 0.3s;      
+  display:flex; align-items:center; justify-content:center; gap:0.5rem;      
+}      
+.submit-btn:hover{transform:scale(1.03); box-shadow:0 6px 20px rgba(255,165,0,0.4);}      
+.loader{      
+  border:3px solid #fff;      
+  border-top:3px solid rgba(255,255,255,0.3);      
+  border-radius:50%;      
+  width:20px;      
+  height:20px;      
+  animation: spin 1s linear infinite;      
+  position:absolute;      
+  right:15px;      
+  top:50%;      
+  transform:translateY(-50%);      
+  display:none;      
+}      
+
+/* Notification */      
+.notification{      
+  max-width:900px;      
+  margin:1rem auto;      
+  padding:1rem;      
+  background:#ffebcc;      
+  color:#cc6600;      
+  font-weight:600;      
+  text-align:center;      
+  border-radius:10px;      
+  display:none;      
+  animation: slideIn 0.5s ease;      
+}      
+
+/* History Table */      
+.history-table-container{      
+  overflow-x:auto;      
+  margin-top:2rem;      
+}      
+.history-table{      
+  width:100%;      
+  border-collapse:collapse;      
+  min-width:600px;      
+}      
+.history-table th, .history-table td{      
+  border:1px solid #ddd;      
+  padding:0.8rem;      
+  text-align:center;      
+}      
+.history-table th{      
+  background: var(--primary-color);      
+  color:#fff;      
+  font-weight:600;      
+}      
+.status-pending{color:#ff9900; font-weight:600;}      
+.status-approved{color:green; font-weight:600;}      
+.status-rejected{color:red; font-weight:600;}      
+
+.live-balance{      
+  font-size:1.2rem;      
+  font-weight:600;      
+  text-align:right;      
+  margin-bottom:1rem;      
+  color: var(--primary-color);      
+}      
+
+/* Footer */      
+footer {  
+  background: #fff5e6;  
+  padding: 1.5rem 2rem;  
+  text-align: center;  
+  font-size: 0.9rem;  
+  color: #555555;  
+  flex-shrink: 0;  
+}  
+
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}      
+@keyframes slideIn{from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}      
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}      
+@media(max-width:768px){      
+  .withdraw-container{margin:1rem;}      
+  .history-table th, .history-table td{padding:0.5rem; font-size:0.9rem;}      
+}      
+</style>      
+</head>      
+<body>      
+
+<header>      
+  <div class="logo">InvestPro<br><small>Roshan Pakistan</small></div>      
+  <a href="dashboard.html" class="logout-btn"><i class="fa-solid fa-chart-line"></i> Dashboard</a>      
+</header>     
+
+<main>
+<div class="withdraw-container animate__animated animate__fadeIn">      
+  <h2><i class="fa-solid fa-money-bill-wave"></i> Withdraw Funds</h2>      
+      
+  <div class="live-balance" id="liveBalance">Balance: 0 PKR</div>      
+  <div class="notification" id="notification">Message here</div>      
+      
+  <div class="form-group">      
+    <label for="name">Name</label>      
+    <input type="text" id="name" placeholder="Enter your name" required>      
+  </div>      
+      
+  <div class="form-group">      
+    <label for="number">Number</label>      
+    <input type="text" id="number" placeholder="Enter your mobile number" required>      
+  </div>      
+      
+  <div class="form-group">      
+    <label for="type">Payment Type</label>      
+    <select id="type" required>      
+      <option value="">Select</option>      
+      <option value="JazzCash">JazzCash</option>      
+      <option value="EasyPaisa">EasyPaisa</option>      
+    </select>      
+  </div>      
+      
+  <div class="form-group">      
+    <label for="amount">Amount (PKR)</label>      
+    <input type="number" id="amount" placeholder="Enter amount between 790 - 1600" required>      
+  </div>      
+      
+  <div class="btn-container">      
+    <button class="submit-btn" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Request Withdraw      
+      <div class="loader" id="loader"></div>      
+    </button>      
+  </div>      
+      
+  <div class="history-table-container">      
+    <table class="history-table animate__animated animate__fadeInUp" id="historyTable">      
+      <thead>      
+        <tr>      
+          <th>Date</th>      
+          <th>Amount (PKR)</th>      
+          <th>Type</th>      
+          <th>Status</th>      
+        </tr>      
+      </thead>      
+      <tbody id="historyBody">      
+        <tr><td colspan="4">Loading...</td></tr>      
+      </tbody>      
+    </table>      
+  </div>      
+</div>
+</main>
+
+<footer>
+  &copy; 2025 InvestPro. All rights reserved.
+</footer>
+
+<script type="module">      
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";      
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";      
+import { getDatabase, ref, get, push, set, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";      
+
+const firebaseConfig = {      
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",      
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",      
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",      
+  projectId: "khanbaba-2d4e5",      
+  storageBucket: "khanbaba-2d4e5.appspot.com",      
+  messagingSenderId: "343135387714",      
+  appId: "1:343135387714:web:5fe330414f19546885eddb",      
+  measurementId: "G-0EPPEJ4GVP"      
+};      
+
+const app = initializeApp(firebaseConfig);      
+const auth = getAuth(app);      
+const db = getDatabase(app);      
+
+const notification = document.getElementById('notification');      
+const submitBtn = document.getElementById('submitBtn');      
+const loader = document.getElementById('loader');      
+const historyBody = document.getElementById('historyBody');      
+const liveBalanceDiv = document.getElementById('liveBalance');      
+
+let currentUser = null;      
+
+function showNotification(msg){      
+  notification.innerHTML = msg;      
+  notification.style.display='block';      
+  setTimeout(()=>{ notification.style.display='none'; },4000);      
+}      
+
+function updateLiveBalance(){      
+  if(!currentUser) return;      
+  get(ref(db,'users/'+currentUser.uid+'/balance')).then(snap=>{      
+    const balance = snap.val() || 0;      
+    liveBalanceDiv.innerText = 'Balance: '+balance+' PKR';      
+  });      
+}      
+
+function fetchHistory(){      
+  if(!currentUser) return;      
+  get(ref(db,'withdrawals/'+currentUser.uid)).then(snap=>{      
+    const data = snap.val() || {};      
+    historyBody.innerHTML='';      
+    const entries = Object.values(data);      
+    if(entries.length===0){      
+      historyBody.innerHTML='<tr><td colspan="4">No withdrawal history yet.</td></tr>';      
+    } else {      
+      entries.sort((a,b)=>new Date(b.date)-new Date(a.date));      
+      entries.forEach(w=>{      
+        let statusClass='', icon='';      
+        if(w.status==='Pending'){statusClass='status-pending'; icon='<i class="fa-solid fa-clock"></i>';}      
+        else if(w.status==='Approved'){statusClass='status-approved'; icon='<i class="fa-solid fa-circle-check"></i>';}      
+        else {statusClass='status-rejected'; icon='<i class="fa-solid fa-circle-xmark"></i>';}      
+        historyBody.innerHTML += `<tr>      
+          <td>${w.date}</td>      
+          <td>${w.amount}</td>      
+          <td>${w.type}</td>      
+          <td class="${statusClass}">${icon} ${w.status}</td>      
+        </tr>`;      
+      });      
+    }      
+  });      
+}      
+
+onAuthStateChanged(auth,user=>{      
+  if(user){      
+    currentUser = user;      
+    updateLiveBalance();      
+    fetchHistory();      
+  }else{      
+    window.location.href='login.html';      
+  }      
+});      
+
+submitBtn.addEventListener('click',()=>{      
+  const name = document.getElementById('name').value.trim();      
+  const number = document.getElementById('number').value.trim();      
+  const type = document.getElementById('type').value;      
+  const amount = parseFloat(document.getElementById('amount').value);      
+
+  if(!name || !number || !type || isNaN(amount)){      
+    showNotification('Please fill all required fields');      
+    return;      
+  }      
+
+  if(amount < 790 || amount > 1600){      
+    showNotification('Amount must be between 790 and 1600 PKR');      
+    return;      
+  }      
+
+  const userRef = ref(db,'users/'+currentUser.uid);      
+  get(userRef).then(snap=>{      
+    const userData = snap.val() || {};      
+    const balance = userData.balance || 0;      
+    if(amount > balance){      
+      showNotification('Insufficient balance');      
+      return;      
+    }      
+
+    loader.style.display='inline-block';      
+    submitBtn.disabled=true;      
+
+    update(userRef,{balance: balance-amount}).then(()=>{      
+      const newRef = push(ref(db,'withdrawals/'+currentUser.uid));      
+      const withdrawData = {      
+        name, number, type, amount, status:'Pending', date:new Date().toLocaleString()      
+      };      
+      set(newRef, withdrawData).then(()=>{      
+        showNotification('Withdraw request sent!');      
+        fetchHistory();      
+        updateLiveBalance();      
+      }).catch(()=>{ showNotification('Error sending request'); })      
+      .finally(()=>{      
+        loader.style.display='none';      
+        submitBtn.disabled=false;      
+      });      
+    });      
+  });      
+});      
+</script>      
+</body>      
+</html>

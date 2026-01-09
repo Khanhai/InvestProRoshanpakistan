@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Game App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;font-family:Arial;background:#f2f2f2}
+.header{background:#2bb673;color:#fff;padding:15px;text-align:center}
+.card{background:#fff;margin:15px;padding:15px;border-radius:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.item{background:#f9f9f9;padding:12px;border-radius:10px;text-align:center}
+.nav{position:fixed;bottom:0;width:100%;display:flex;background:#fff;border-top:1px solid #ddd}
+.nav a{flex:1;padding:10px;text-align:center;text-decoration:none;color:#555}
+.active{color:#2bb673}
+</style>
+</head>
+<body>
+<div class="header">Game Center</div>
+<div class="card">
+<h3>Wallet</h3>
+<p>Main Wallet: Rs 0</p>
+</div>
+<div class="card grid">
+<div class="item">Slots</div>
+<div class="item">Lottery</div>
+<div class="item">Hot</div>
+<div class="item">VIP</div>
+</div>
+<div style="height:60px"></div>
+<div class="nav">
+<a class="active" href="index.html">Home</a>
+<a href="wallet.html">Wallet</a>
+<a href="deposit.html">Deposit</a>
+<a href="withdraw.html">Withdraw</a>
+<a href="profile.html">Me</a>
+</div>
+</body>
+</html>

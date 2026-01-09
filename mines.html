@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Mines Cashout</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+:root {
+  --primary-color: #FFA500;
+  --bg-color: #f5f5f5;
+  --text-color: #333;
+  --cell-size: 70px;
+}
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter', sans-serif; }
+body { background: var(--bg-color); color: var(--text-color); display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px; }
+
+.game-info {
+  max-width: 900px; width:100%; margin-bottom:20px; padding:1.5rem; background:#fff; border-radius:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.05); text-align:center;
+}
+.game-info h2 { color: var(--primary-color); font-weight:600; margin-bottom:10px; }
+.game-info p { font-weight:600; font-size:1rem; color:#333; margin:5px 0; }
+
+#grid {
+  display:grid;
+  grid-template-columns: repeat(5, var(--cell-size));
+  grid-gap:10px;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background:#0f1a2b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:1.5rem;
+  border-radius:10px;
+  transition: 0.3s;
+  color:#fff;
+}
+.cell.safe { background:gold; color:#000; }
+.cell.bomb { background:#f44336; color:#fff; }
+.cell:hover { transform:scale(1.05); }
+
+.chip-container { display:flex; justify-content:center; gap:15px; margin-bottom:15px; flex-wrap:wrap; }
+.chip {
+  background:var(--primary-color);
+  color:#fff;
+  font-weight:600;
+  width:60px;
+  height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:1rem;
+  box-shadow:0 6px 20px rgba(255,165,0,0.4);
+  transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+}
+.chip.selected { background: #ffb733; color:#000; }
+.chip:hover { transform:scale(1.15); box-shadow:0 10px 25px rgba(255,165,0,0.6); }
+
+button {
+  padding:0.8rem 2rem;
+  font-size:1.1rem;
+  font-weight:600;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  background: var(--primary-color);
+  color:#fff;
+  transition: transform 0.3s, box-shadow 0.3s;
+  margin:5px;
+}
+button:hover { transform:scale(1.05); box-shadow:0 6px 20px rgba(255,165,0,0.4); }
+
+#message {
+  font-weight:600;
+  font-size:1.2rem;
+  margin-top:10px;
+  color:#333;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="game-info animate__animated animate__fadeIn">
+  <h2>Modern Mines Cashout</h2>
+  <p id="balanceDisplay">Balance: Loading...</p>
+  <p>Current Bet: <span id="currentBetDisplay">0</span> PKR</p>
+  <p>Current Winnings: <span id="currentWinDisplay">0</span> PKR</p>
+  <p>Next Win Amount: <span id="nextWinDisplay">0</span> PKR</p>
+</div>
+
+<div class="chip-container" id="chipContainer">
+  <div class="chip" data-value="10">10</div>
+  <div class="chip" data-value="20">20</div>
+  <div class="chip" data-value="30">30</div>
+  <div class="chip" data-value="40">40</div>
+  <div class="chip" data-value="50">50</div>
+  <div class="chip" data-value="100">100</div>
+  <div class="chip" data-value="200">200</div>
+</div>
+
+<button id="startBtn">Start Game</button>
+<button id="cashoutBtn" disabled>Cash Out</button>
+<button id="retryBtn" style="display:none;">Retry</button>
+
+<div id="grid"></div>
+<div id="message"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
+  projectId: "khanbaba-2d4e5",
+  storageBucket: "khanbaba-2d4e5.appspot.com",
+  messagingSenderId: "343135387714",
+  appId: "1:343135387714:web:5fe330414f19546885eddb",
+  measurementId: "G-0EPPEJ4GVP"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+let balance = 0;
+let gridSize = 20;
+let bombCount = 7;
+let mines = [];
+let clickedCells = [];
+let selectedChips = [];
+let totalBet = 0;
+let currentWin = 0;
+let gameActive = false;
+
+const grid = document.getElementById('grid');
+const balanceDisplay = document.getElementById('balanceDisplay');
+const message = document.getElementById('message');
+const chips = document.querySelectorAll('.chip');
+const startBtn = document.getElementById('startBtn');
+const cashoutBtn = document.getElementById('cashoutBtn');
+const retryBtn = document.getElementById('retryBtn');
+const currentBetDisplay = document.getElementById('currentBetDisplay');
+const currentWinDisplay = document.getElementById('currentWinDisplay');
+const nextWinDisplay = document.getElementById('nextWinDisplay');
+
+// Fetch live balance
+onAuthStateChanged(auth, user => {
+    if(!user){ window.location.href='login.html'; return; }
+    currentUser = user;
+    const balanceRef = ref(db, 'users/' + user.uid + '/balance');
+    onValue(balanceRef, snapshot => {
+        balance = snapshot.val() || 0;
+        balanceDisplay.textContent = `Balance: ${balance} PKR`;
+    });
+});
+
+// Select multiple chips
+chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+        if(gameActive){ alert("Finish current game first!"); return; }
+        const value = parseInt(chip.dataset.value);
+        if(chip.classList.contains('selected')){
+            chip.classList.remove('selected');
+            selectedChips = selectedChips.filter(v => v!==value);
+        } else {
+            selectedChips.push(value);
+            chip.classList.add('selected');
+        }
+        totalBet = selectedChips.reduce((a,b)=>a+b,0);
+        currentBetDisplay.textContent = totalBet;
+    });
+});
+
+// Start game
+startBtn.addEventListener('click', () => {
+    if(totalBet <= 0){ alert("Select at least one chip!"); return; }
+    if(balance < totalBet){ alert("Not enough balance!"); return; }
+    balance -= totalBet;
+    update(ref(db, 'users/' + currentUser.uid), {balance});
+    initGame();
+});
+
+// Initialize game
+function initGame(){
+    grid.innerHTML='';
+    mines=[];
+    clickedCells=[];
+    message.textContent='';
+    currentWin = 0;
+    currentWinDisplay.textContent=currentWin;
+    nextWinDisplay.textContent=(totalBet*0.5).toFixed(2);
+    cashoutBtn.disabled=false;
+    retryBtn.style.display='none';
+    gameActive = true;
+
+    while(mines.length < bombCount){
+        let rand=Math.floor(Math.random()*gridSize);
+        if(!mines.includes(rand)) mines.push(rand);
+    }
+
+    for(let i=0;i<gridSize;i++){
+        const cell=document.createElement('div');
+        cell.classList.add('cell');
+        cell.dataset.index=i;
+        cell.addEventListener('click', handleClick);
+        grid.appendChild(cell);
+    }
+}
+
+// Handle click
+function handleClick(e){
+    if(!gameActive) return;
+    const cell = e.target;
+    const index = parseInt(cell.dataset.index);
+    if(clickedCells.includes(index)) return;
+    clickedCells.push(index);
+
+    if(mines.includes(index)){
+        cell.classList.add('bomb');
+        cell.textContent='💣';
+        message.textContent="💥 You hit a bomb! Game over!";
+        gameActive=false;
+        cashoutBtn.disabled=true;
+        retryBtn.style.display='inline-block';
+    } else {
+        cell.classList.add('safe');
+        cell.textContent='💰';
+        let winAmount = totalBet*0.5;
+        currentWin += winAmount;
+        currentWinDisplay.textContent=currentWin.toFixed(2);
+        nextWinDisplay.textContent=(totalBet*0.5).toFixed(2);
+    }
+}
+
+// Cashout
+cashoutBtn.addEventListener('click', () => {
+    if(!gameActive) return;
+    balance += currentWin;
+    update(ref(db, 'users/' + currentUser.uid), {balance});
+    message.textContent=`💰 You cashed out ${currentWin.toFixed(2)} PKR!`;
+    gameActive=false;
+    cashoutBtn.disabled=true;
+    retryBtn.style.display='inline-block';
+});
+
+// Retry
+retryBtn.addEventListener('click', () => {
+    grid.innerHTML='';
+    message.textContent='';
+    selectedChips = [];
+    totalBet = 0;
+    currentBetDisplay.textContent=totalBet;
+    currentWin = 0;
+    currentWinDisplay.textContent=currentWin;
+    nextWinDisplay.textContent='0';
+    chips.forEach(c=>c.classList.remove('selected'));
+    retryBtn.style.display='none';
+    gameActive=false;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin & Win | InvestPro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+<style>
+:root{
+  --primary:#FFA500;
+  --card:#fff5e6;
+  --win:#00c853;
+  --lose:#ff1744;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
+
+header{
+  width:100%;max-width:900px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:15px
+}
+.logo{font-size:1.5rem;font-weight:700;color:var(--primary)}
+.back-btn{
+  background:var(--primary);color:#fff;border:none;
+  padding:6px 14px;border-radius:12px;cursor:pointer
+}
+
+.balance{
+  background:var(--card);
+  padding:14px 25px;
+  border-radius:12px;
+  font-size:1.3rem;
+  font-weight:700;
+  margin-bottom:15px
+}
+
+.wheel-container{position:relative;width:300px;height:300px;margin-bottom:15px}
+canvas{border-radius:50%;background:#fff3e0}
+.pointer{
+  position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+  border-left:20px solid transparent;
+  border-right:20px solid transparent;
+  border-top:35px solid var(--primary)
+}
+
+.spin-button{
+  background:var(--primary);color:#fff;
+  border:none;border-radius:40px;
+  padding:12px 45px;font-size:1.2rem;
+  font-weight:700;cursor:pointer
+}
+
+.reward-display{margin:15px 0;font-size:1.3rem;font-weight:700}
+
+.history{
+  background:var(--card);
+  width:100%;max-width:380px;
+  border-radius:15px;
+  padding:15px
+}
+.history h3{text-align:center;color:var(--primary)}
+.history ul{list-style:none;max-height:200px;overflow:auto}
+.history li{text-align:center;font-weight:700;padding:6px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">InvestPro</div>
+  <button class="back-btn" onclick="location.href='dashboard.html'">
+    <i class="fa fa-arrow-left"></i> Dashboard
+  </button>
+</header>
+
+<div class="balance">Balance: <span id="balance">0</span> PKR</div>
+
+<div class="wheel-container">
+  <canvas id="wheel" width="300" height="300"></canvas>
+  <div class="pointer"></div>
+</div>
+
+<button class="spin-button" onclick="spinWheel()">SPIN (80 PKR)</button>
+
+<div class="reward-display" id="rewardText">Spin the wheel</div>
+
+<div class="history">
+  <h3>History</h3>
+  <ul id="history"></ul>
+</div>
+
+<!-- 🔥 FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
+  projectId: "khanbaba-2d4e5",
+  storageBucket: "khanbaba-2d4e5.appspot.com",
+  messagingSenderId: "343135387714",
+  appId: "1:343135387714:web:5fe330414f19546885eddb"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+let balance = 0;
+let spinning = false;
+
+const balanceEl = document.getElementById("balance");
+const rewardText = document.getElementById("rewardText");
+const history = document.getElementById("history");
+
+const rewards = [0,0,0,20,0,0,30,0,0,50,0,0,120,0,0,200,0,0];
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const radius = canvas.width / 2;
+
+function drawWheel(){
+  const angle = 2 * Math.PI / rewards.length;
+  for(let i=0;i<rewards.length;i++){
+    ctx.beginPath();
+    ctx.moveTo(radius,radius);
+    ctx.arc(radius,radius,radius,i*angle,(i+1)*angle);
+    ctx.fillStyle = rewards[i] > 0 ? "#00c853" : "#ff1744";
+    ctx.fill();
+    ctx.save();
+    ctx.translate(radius,radius);
+    ctx.rotate(i*angle + angle/2);
+    ctx.fillStyle="#fff";
+    ctx.font="bold 14px Inter";
+    ctx.textAlign="right";
+    ctx.fillText(rewards[i]+" PKR", radius-15,5);
+    ctx.restore();
+  }
+}
+drawWheel();
+
+onAuthStateChanged(auth,user=>{
+  if(!user){ location.href="login.html"; return; }
+  currentUser = user;
+
+  onValue(ref(db,"users/"+user.uid+"/balance"),snap=>{
+    balance = snap.val() || 0;
+    balanceEl.innerText = balance;
+  });
+});
+
+window.spinWheel = function(){
+  if(spinning) return;
+  if(balance < 80){ alert("Not enough balance"); return; }
+
+  spinning = true;
+  balance -= 80;
+  update(ref(db,"users/"+currentUser.uid),{balance});
+
+  const spin = 360*5 + Math.random()*360;
+  canvas.style.transition="5s cubic-bezier(.17,.67,.25,1)";
+  canvas.style.transform=`rotate(${spin}deg)`;
+
+  setTimeout(()=>{
+    spinning=false;
+    const index = Math.floor(((360-(spin%360)+270)%360)/(360/rewards.length));
+    const win = rewards[index];
+
+    if(win > 0){
+      balance += win;
+      update(ref(db,"users/"+currentUser.uid),{balance});
+      rewardText.innerText = `🎉 You won ${win} PKR`;
+    }else{
+      rewardText.innerText = `❌ No Win`;
+    }
+
+    const li=document.createElement("li");
+    li.innerText = win>0?`+${win} PKR`:`0 PKR`;
+    li.style.color = win>0 ? "green" : "red";
+    history.prepend(li);
+
+    canvas.style.transition="none";
+    canvas.style.transform=`rotate(${spin%360}deg)`;
+  },5000);
+}
+</script>
+
+</body>
+</html>
