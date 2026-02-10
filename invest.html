@@ -219,11 +219,6 @@ footer{
 <div class="invest-container animate__animated animate__fadeIn">
   <h2><i class="fa-solid fa-wallet"></i> Invest Now</h2>
 
-  <!-- Loader for Payment Methods -->
-  <div id="paymentLoader" style="display:flex; justify-content:center; align-items:center; height:50px;">
-    <div class="loader" style="border-top-color:#FFA500;"></div>
-  </div>
-
   <div id="paymentMethodsBox"></div>
   <div class="notification" id="notification">Message here</div>
 
@@ -241,6 +236,9 @@ footer{
     <label for="type"><i class="fa-solid fa-credit-card"></i> Payment Type</label>
     <select id="type" required>
       <option value="">Select</option>
+      <option value="JazzCash">JazzCash</option>
+      <option value="EasyPaisa">EasyPaisa</option>
+      <option value="Bank">Bank</option>
     </select>
   </div>
 
@@ -303,9 +301,6 @@ const notification = document.getElementById('notification');
 const submitBtn = document.getElementById('submitBtn');
 const loader = document.getElementById('loader');
 const historyBody = document.getElementById('historyBody');
-const paymentMethodsBox = document.getElementById('paymentMethodsBox');
-const typeSelect = document.getElementById('type');
-const paymentLoader = document.getElementById('paymentLoader');
 const pageLoader = document.getElementById('pageLoader');
 const mainContent = document.querySelector('main');
 
@@ -317,68 +312,16 @@ function showNotification(msg){
   setTimeout(()=>{ notification.style.display='none'; },4000);
 }
 
-function copyToClipboard(text){
-  navigator.clipboard.writeText(text)
-    .then(()=> alert("Number copied to clipboard!"))
-    .catch(()=> alert("Failed to copy"));
-}
-
-const logoMap = {
-  'EasyPaisa':'123.jpeg',
-  'JazzCash':'1234.jpeg',
-  'Raast':'12345.jpeg',
-  'Bank':'123456.jpeg'
-};
-
 onAuthStateChanged(auth,user=>{
   if(user){
     currentUser=user;
     fetchHistory();
-    fetchPaymentMethods();
     pageLoader.style.display='none';
     mainContent.style.opacity='1';
   } else window.location.href='login.html';
 });
 
-function fetchPaymentMethods(){
-  paymentLoader.style.display='flex';
-  get(ref(db,'admin/investMethods')).then(snap=>{
-    const data = snap.val() || {};
-    paymentMethodsBox.innerHTML='';
-    typeSelect.innerHTML = '<option value="">Select</option>';
-    if(Object.keys(data).length){
-      Object.keys(data).forEach(key=>{
-        const method = data[key];
-        const logoURL = logoMap[method.type]||'';
-        const div = document.createElement('div');
-        div.className='payment-method-box';
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-            <strong><i class="fa-solid fa-credit-card"></i> Type:</strong> ${method.type}
-            ${logoURL ? `<img src="${logoURL}" alt="${method.type}" style="height:20px; vertical-align:middle;">` : ''}
-          </div>
-          <div><strong><i class="fa-solid fa-user"></i> Name:</strong> ${method.name}</div>
-          <div style="display:flex;align-items:center;gap:0.5rem; flex-wrap:wrap;">
-            <strong><i class="fa-solid fa-phone"></i> Number:</strong>
-            <pre style="margin:0; font-family:inherit;">${method.number}</pre>
-            <button class="copy-btn"><i class="fa-solid fa-copy"></i> Copy</button>
-          </div>
-        `;
-        div.querySelector('.copy-btn').addEventListener('click',()=>copyToClipboard(method.number));
-        paymentMethodsBox.appendChild(div);
-
-        const option = document.createElement('option');
-        option.value = method.type;
-        option.textContent = method.type;
-        typeSelect.appendChild(option);
-      });
-    } else paymentMethodsBox.innerHTML='No payment method available currently.';
-  }).finally(()=> paymentLoader.style.display='none');
-}
-
-setInterval(fetchPaymentMethods,30000);
-
-submitBtn.addEventListener('click',()=>{
+submitBtn.addEventListener('click', async ()=>{
   const name = document.getElementById('name').value.trim();
   const number = document.getElementById('number').value.trim();
   const type = document.getElementById('type').value;
@@ -392,29 +335,42 @@ submitBtn.addEventListener('click',()=>{
   loader.style.display='inline-block';
   submitBtn.disabled=true;
 
-  const newRef = push(ref(db,'investments/'+currentUser.uid));
-
+  let proofBase64 = null;
   if(proofFile){
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const base64Image = e.target.result;
-      set(newRef,{
+    proofBase64 = await new Promise((resolve)=>{
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(proofFile);
+    });
+  }
+
+  // Send request to server to create JazzCash payment
+  try{
+    const res = await fetch('/createPayment', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        name, number, type, amount:200
+      })
+    });
+    const data = await res.json();
+    if(data.status==='success'){
+      // Save to Firebase
+      const newRef = push(ref(db,'investments/'+currentUser.uid));
+      await set(newRef,{
         name, number, type, amount:200, status:'Pending', date:new Date().toLocaleString(),
-        proof: base64Image
-      }).then(()=>{
-        showNotification('Investment request sent with image!');
-        fetchHistory();
-      }).finally(()=>{ loader.style.display='none'; submitBtn.disabled=false; });
-    }
-    reader.readAsDataURL(proofFile);
-  } else {
-    set(newRef,{
-      name, number, type, amount:200, status:'Pending', date:new Date().toLocaleString(),
-      proof: null
-    }).then(()=>{
-      showNotification('Investment request sent!');
+        proof: proofBase64
+      });
+      showNotification('Payment request created! Redirecting to JazzCash...');
+      setTimeout(()=>{ window.location.href = data.paymentUrl; },1000);
       fetchHistory();
-    }).finally(()=>{ loader.style.display='none'; submitBtn.disabled=false; });
+    } else showNotification('Failed to create payment. Try again.');
+  } catch(err){
+    console.error(err);
+    showNotification('Server error. Try again.');
+  } finally{
+    loader.style.display='none';
+    submitBtn.disabled=false;
   }
 });
 
@@ -447,4 +403,4 @@ function fetchHistory(){
 }
 </script>
 </body>
-  </html>
+</html>
