@@ -287,7 +287,7 @@ footer{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+import { getDatabase, ref, get, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
@@ -335,7 +335,6 @@ onAuthStateChanged(auth,user=>{
     currentUser=user;
     fetchHistory();
     fetchPaymentMethods();
-    // Hide page loader and show main content
     pageLoader.style.display='none';
     mainContent.style.opacity='1';
   } else window.location.href='login.html';
@@ -421,7 +420,7 @@ submitBtn.addEventListener('click',()=>{
 
 function fetchHistory(){
   if(!currentUser) return;
-  get(ref(db,'investments/'+currentUser.uid)).then(snap=>{
+  onValue(ref(db,'investments/'+currentUser.uid),snap=>{
     const data = snap.val() || {};
     historyBody.innerHTML='';
     const keys = Object.keys(data);
@@ -447,6 +446,5 @@ function fetchHistory(){
   });
 }
 </script>
-
 </body>
-</html>
+  </html>
