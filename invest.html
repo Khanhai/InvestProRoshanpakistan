@@ -1,120 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wallet Payment - Rs 100</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <style>
-        body{
-            font-family: Arial;
-            background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-            margin:0;
-        }
-
-        .payment-box{
-            background:white;
-            padding:30px;
-            border-radius:15px;
-            width:320px;
-            box-shadow:0 0 20px rgba(0,0,0,0.4);
-            text-align:center;
-        }
-
-        h2{
-            margin-bottom:20px;
-        }
-
-        input{
-            width:100%;
-            padding:10px;
-            margin:8px 0;
-            border-radius:8px;
-            border:1px solid #ccc;
-        }
-
-        button{
-            width:100%;
-            padding:12px;
-            background:#28a745;
-            border:none;
-            color:white;
-            font-size:16px;
-            border-radius:8px;
-            cursor:pointer;
-        }
-
-        button:hover{
-            background:#218838;
-        }
-
-        .amount{
-            font-weight:bold;
-            margin:10px 0;
-            color:#e91e63;
-        }
-
-        .message{
-            margin-top:15px;
-            font-weight:bold;
-        }
-    </style>
+<title>Wallet Payment</title>
 </head>
 <body>
-
-<div class="payment-box">
-    <h2>Wallet Payment</h2>
-
-    <form id="paymentForm">
-        <input type="text" id="name" placeholder="Enter Your Name" required>
-        <input type="tel" id="phone" placeholder="Enter Phone Number" required>
-        
-        <div class="amount">Amount: Rs 100</div>
-
-        <button type="submit">Send Wallet Request</button>
-    </form>
-
-    <div class="message" id="message"></div>
-</div>
+<h2>Send Rs 100 to Wallet</h2>
+<input type="text" id="name" placeholder="Name">
+<input type="text" id="wallet" placeholder="Wallet Number">
+<button id="payBtn">Send Rs 100</button>
+<div id="msg"></div>
 
 <script>
-const publishableKey = "pk_live_Hk97eb1xezpmCmkmSRqwlP083128XQLjd2t6D0qw";
+const payBtn = document.getElementById("payBtn");
+const msg = document.getElementById("msg");
 
-document.getElementById("paymentForm").addEventListener("submit", function(e){
-    e.preventDefault();
-
+payBtn.onclick = async () => {
     const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
+    const wallet = document.getElementById("wallet").value;
 
-    // Demo request simulation
-    document.getElementById("message").innerHTML =
-        "Processing Wallet Request...";
+    if(!name || !wallet){
+        msg.innerText = "Enter all fields!";
+        return;
+    }
 
-    setTimeout(()=>{
-        document.getElementById("message").innerHTML =
-            "Payment Request Sent Successfully ✔️<br>Amount: Rs 100";
-    },2000);
+    msg.innerText = "Processing...";
 
-    /*
-    ⚠️ REAL PAYMENT FLOW:
-
-    fetch("https://your-backend.com/create-payment", {
+    // Send request to your backend
+    fetch("https://YOUR_BACKEND_URL/sendPayment", {
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-            name:name,
-            phone:phone,
-            amount:100
-        })
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ name, wallet, amount:100 })
     })
-    */
-});
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.success){
+            msg.innerText = "Payment sent successfully ✔️";
+        }else{
+            msg.innerText = "Payment failed: " + data.error;
+        }
+    })
+    .catch(err=>{
+        msg.innerText = "Error: "+err.message;
+    });
+};
 </script>
-
 </body>
 </html>
