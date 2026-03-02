@@ -1,14 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Send Rs 100</title>
-<meta charset="utf-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send Rs 100 to Wallet</title>
+<style>
+body{font-family:sans-serif;text-align:center;padding:50px;background:#f7f7f7;}
+input{padding:10px;margin:10px;width:200px;}
+button{padding:10px 20px;background:#FFA500;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+button:hover{background:#e69500;}
+#msg{margin-top:20px;font-weight:bold;}
+</style>
 </head>
 <body>
+
 <h2>Send Rs 100 to Wallet</h2>
-<input type="text" id="name" placeholder="Name">
-<input type="text" id="wallet" placeholder="Wallet Number">
+
+<input type="text" id="name" placeholder="Your Name"><br>
+<input type="text" id="wallet" placeholder="Wallet Number"><br>
 <button id="payBtn">Send Rs 100</button>
+
 <div id="msg"></div>
 
 <script>
@@ -16,15 +27,15 @@ const payBtn = document.getElementById("payBtn");
 const msg = document.getElementById("msg");
 
 payBtn.onclick = async () => {
-    const name = document.getElementById("name").value;
-    const wallet = document.getElementById("wallet").value;
+    const name = document.getElementById("name").value.trim();
+    const wallet = document.getElementById("wallet").value.trim();
 
     if(!name || !wallet){
-        msg.innerText = "Enter all fields!";
+        msg.innerText = "Please enter both Name and Wallet Number!";
         return;
     }
 
-    msg.innerText = "Processing...";
+    msg.innerText = "Processing payment...";
 
     try{
         const res = await fetch("https://us-central1-YOUR_FIREBASE_PROJECT.cloudfunctions.net/sendPayment", {
@@ -32,16 +43,18 @@ payBtn.onclick = async () => {
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify({ name, wallet, amount:100 })
         });
+
         const data = await res.json();
         if(data.success){
-            msg.innerText = "Payment sent successfully ✔️";
+            msg.innerText = "✅ Payment sent successfully!";
         }else{
-            msg.innerText = "Payment failed: " + data.error;
+            msg.innerText = "❌ Payment failed: " + (data.error || "Unknown error");
         }
     }catch(err){
-        msg.innerText = "Error: " + err.message;
+        msg.innerText = "❌ Error: " + err.message;
     }
 };
 </script>
+
 </body>
 </html>
