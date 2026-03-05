@@ -162,7 +162,7 @@ footer{background:var(--card);text-align:center;font-size:.85rem;color:#555;padd
 <div class="tab-bar">  
   <a href="dashboard.html" class="active"><i class="fa-solid fa-house"></i> Home</a>  
   <a href="invest.html"><i class="fa-solid fa-wallet"></i> Invest</a>  
-  <a href="earn.html"><i class="fa-solid fa-coins"></i> Earn</a>  
+  <a href="#" onclick="refreshPage()"><i class="fa-solid fa-rotate"></i> Refresh</a>
   <a href="withdraw.html"><i class="fa-solid fa-hand-holding-dollar"></i> Withdraw</a>  
   <a href="refer.html"><i class="fa-solid fa-gift"></i> Refer</a>  
 </div>  
@@ -290,6 +290,10 @@ investBtn.onclick=()=>window.location.href='invest.html';
 withdrawBtn.onclick=()=>window.location.href='withdraw.html';  
 referBtn.onclick=()=>window.location.href='refer.html';  
 </script>  
-  
+  <script>
+function refreshPage(){
+  location.reload();
+}
+</script>
 </body>  
 </html>
