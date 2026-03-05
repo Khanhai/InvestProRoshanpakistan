@@ -132,9 +132,9 @@ footer{background:var(--card);text-align:center;font-size:.85rem;color:#555;padd
       <p id="totalInvestments">PKR 0.00</p>  
     </div>  
     <div class="summary-card">  
-      <h4>Referral Earnings</h4>  
-      <p id="referralEarnings">PKR 0.00</p>  
-    </div>  
+  <h4>Withdraw Balance</h4>  
+  <p id="withdrawBalance">PKR 0.00</p>  
+</div>
   </div>  
   
   <!-- User Info -->  
@@ -153,8 +153,8 @@ footer{background:var(--card);text-align:center;font-size:.85rem;color:#555;padd
     <button id="earnBtn" class="locked"><i class="fa-solid fa-coins"></i> Earn</button>  
     <button id="spinBtn" class="locked"><i class="fa-solid fa-circle-notch"></i> Spin & Win</button>  
     <button id="minesBtn" class="locked"><i class="fa-solid fa-bomb"></i> Mines Game</button>  
-    <button id="withdrawBtn"><i class="fa-solid fa-hand-holding-dolaar"></i> Withdraw</button>  
-    <button id="massage s"><i class="fa-solid fa-gift"></i> messages</button>  
+    <button id="withdrawBtn"><i class="fa-solid fa-hand-holding-dollar"></i> Withdraw</button>  
+    <button id="referBtn"><i class="fa-solid fa-gift"></i> Massage</button>  
   </div>  
 </main>  
   
@@ -222,8 +222,10 @@ onAuthStateChanged(auth,user=>{
   userEmailEl.innerText=`Email: ${user.email}`;  
   
   onValue(ref(db,'users/'+user.uid+'/balance'),snap=>userBalanceEl.innerText=`Balance: PKR ${parseFloat(snap.val()||0).toFixed(2)}`);  
-  onValue(ref(db,'users/'+user.uid+'/refBalance'),snap=>referralEarningsEl.innerText=`PKR ${parseFloat(snap.val()||0).toFixed(2)}`);  
-  
+  const withdrawBalanceEl = document.getElementById('withdrawBalance');
+onValue(ref(db,'users/'+user.uid+'/withdrawBalance'),snap=>{
+  withdrawBalanceEl.innerText = `PKR ${parseFloat(snap.val()||0).toFixed(2)}`;
+});
   onValue(ref(db,'investments/'+user.uid),snap=>{  
     const investments=snap.val();  
     let total=0;  
