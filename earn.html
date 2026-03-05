@@ -10,163 +10,114 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 <style>
 :root{
-  --primary-color:#FFA500;
-  --bg-color:#fff;
-  --text-color:#333;
+  --primary:#FFA500;
+  --bg:#fff;
+  --card:#fff5e6;
+  --text:#333;
   --header-height:70px;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background: var(--bg-color); color: var(--text-color); line-height:1.6; display:flex; flex-direction:column; min-height:100vh;}
-main{flex:1; opacity:0; transition: opacity 0.5s ease;}
+body{background:var(--bg);color:var(--text);line-height:1.6;display:flex;flex-direction:column;min-height:100vh;}
 
-/* Page Loader */
-#pageLoader {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(255,255,255,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center;
+#pageLoader,#taskOverlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(255,255,255,0.95);
+  display:flex;justify-content:center;align-items:center;flex-direction:column;
   z-index:3000;
 }
-#pageLoader .spinner {
-  width:60px; height:60px; border:5px solid #fff; border-top:5px solid var(--primary-color);
-  border-radius:50%; animation:spin 1s linear infinite; margin-bottom:1rem;
+#taskOverlay{display:none}
+.spinner{
+  width:60px;height:60px;border:5px solid #fff;
+  border-top:5px solid var(--primary);
+  border-radius:50%;animation:spin 1s linear infinite;margin-bottom:1rem;
 }
-#pageLoader .text {color:var(--primary-color); font-weight:600; font-size:1rem;}
+.loader-text{color:var(--primary);font-weight:600;font-size:1rem;}
 
-/* Header */
 header{
-  height: var(--header-height);
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  padding:0 2rem;
-  background: var(--bg-color);
-  position: sticky;
-  top:0;
-  z-index:1000;
-  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+  height:var(--header-height);
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0 2rem;background:var(--bg);
+  box-shadow:0 2px 10px rgba(0,0,0,.05);
 }
 header .logo{
-  font-size:1.5rem;
-  font-weight:700;
-  color: var(--primary-color);
-  line-height:1.1;
-  display:flex;
-  flex-direction:column;
+  font-size:1.5rem;font-weight:700;color:var(--primary);
+  display:flex;flex-direction:column;line-height:1;
 }
-header .logo small{
-  font-size:0.8rem;
-  font-weight:400;
-  color:#555;
-}
+header .logo small{font-size:.8rem;font-weight:400;color:#555;margin-top:2px;}
 header .dashboard-btn{
-  background: var(--primary-color);
-  color:#fff;
-  padding:0.5rem 1.2rem;
-  border-radius:25px;
-  text-decoration:none;
-  transition: transform 0.3s, box-shadow 0.3s;
-  display:flex; align-items:center; gap:0.5rem;
+  background:var(--primary);color:#fff;
+  padding:.55rem 1.3rem;border-radius:25px;text-decoration:none;
+  display:flex;align-items:center;gap:.5rem;font-weight:600;
+  transition: transform .3s, box-shadow .3s;
 }
-header .dashboard-btn:hover{transform:scale(1.05); box-shadow:0 4px 15px rgba(255,165,0,0.4);}
+header .dashboard-btn:hover{transform:scale(1.05);box-shadow:0 4px 15px rgba(255,165,0,.4);}
 
-/* Container */
+main{flex:1;opacity:0;transition:opacity .5s ease;padding:2rem 0;}
+
 .earn-container{
-  max-width:900px;
-  margin:2rem auto;
-  padding:2rem;
-  background:#fff5e6;
-  border-radius:15px;
+  max-width:900px;margin:2rem auto;padding:2rem;
+  background:var(--card);border-radius:15px;
   box-shadow:0 8px 25px rgba(0,0,0,0.05);
-  animation:fadeIn 1s ease;
-  text-align:center;
+  display:flex;flex-direction:column;gap:1rem;
 }
-.earn-container h2{
-  color: var(--primary-color);
-  margin-bottom:1rem;
-  display:flex; justify-content:center; align-items:center; gap:0.5rem;
+.earn-container h2{text-align:center;color:var(--primary);margin-bottom:1rem;}
+.balance{
+  text-align:center;font-weight:700;font-size:1.2rem;margin-bottom:1rem;color:var(--primary);
 }
-.live-balance{
-  font-size:1.2rem;
-  font-weight:600;
-  color: var(--primary-color);
-  text-align:right;
-  margin-bottom:1rem;
+
+.task-card{
+  background:#fff;padding:1rem;border-radius:15px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  display:flex;justify-content:space-between;align-items:center;transition:transform .3s;
 }
-.task-box{
-  background:#fff3e0;
-  padding:1.5rem;
-  border-radius:15px;
-  margin-bottom:1.5rem;
-  font-weight:600;
-  display:flex; flex-direction:column; gap:0.5rem;
-  align-items:center;
+.task-card:hover{transform:translateY(-3px);}
+.task-card p{margin:0;font-weight:600;color:#555;}
+.task-card button{
+  padding:.5rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:12px;
+  cursor:pointer;font-weight:600;transition: transform .3s, box-shadow .3s;
 }
-.task-box p{margin-bottom:0.5rem;}
-.reward-btn{
-  padding:1rem 2rem;
-  background: var(--primary-color);
-  color:#fff;
-  border:none;
-  border-radius:25px;
-  font-weight:600;
-  cursor:pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  display:flex; align-items:center; gap:0.5rem;
-}
-.reward-btn:hover{transform:scale(1.05); box-shadow:0 6px 20px rgba(255,165,0,0.4);}
-.reward-btn:disabled{background:#ccc; cursor:not-allowed;}
-.timer-box{
-  margin-top:0.5rem;
-  font-weight:600;
-  color:#555;
-}
+.task-card button:hover:not(:disabled){transform:scale(1.05);box-shadow:0 4px 15px rgba(255,165,0,.3);}
+.task-card button:disabled{background:#ccc;cursor:not-allowed;box-shadow:none;}
+
 .notification{
-  max-width:900px;
-  margin:1rem auto;
-  padding:1rem;
-  background:#ffebcc;
-  color:#cc6600;
+  display:none;background:#ffebcc;color:#cc6600;
+  padding:1rem;text-align:center;border-radius:10px;margin-bottom:1rem;
   font-weight:600;
-  text-align:center;
-  border-radius:10px;
-  display:none;
-  animation: slideIn 0.5s ease;
 }
+
 footer{
-  background: #fff5e6;
-  padding: 1.5rem 2rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
+  background:var(--card);padding:1.5rem;text-align:center;color:#555;flex-shrink:0;
 }
-@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
-@keyframes slideIn{from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}
+
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@media(max-width:768px){
-  .task-box{padding:1rem;}
-  .reward-btn{width:100%; padding:0.8rem;}
-}
 </style>
 </head>
 <body>
 
-<!-- Page Loader -->
 <div id="pageLoader">
   <div class="spinner"></div>
-  <div class="text">Loading Earn Page...</div>
+  <div class="loader-text">Loading Earn Page...</div>
+</div>
+
+<div id="taskOverlay">
+  <div class="spinner"></div>
+  <div class="loader-text" id="taskTimerText">Starting task...</div>
 </div>
 
 <header>
   <div class="logo">InvestPro<br><small>Roshan Pakistan</small></div>
-  <a href="dashboard.html" class="dashboard-btn"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a href="dashboard.html" class="dashboard-btn">
+    <i class="fa-solid fa-chart-line"></i> Dashboard
+  </a>
 </header>
 
 <main>
-<div class="earn-container animate__animated animate__fadeIn">
-  <h2><i class="fa-solid fa-coins"></i> Earn Rewards</h2>
-  <div class="live-balance" id="liveBalance">Balance: 0 PKR</div>
-  <div class="notification" id="notification">Message here</div>
-  <div id="tasksContainer"></div>
-</div>
+  <div class="earn-container animate__animated animate__fadeIn">
+    <h2><i class="fa-solid fa-coins"></i> Earn Tasks</h2>
+    <div class="balance">Balance: PKR <span id="liveBalance">0</span></div>
+    <div class="notification" id="notification"></div>
+    <div id="tasksList">Loading tasks...</div>
+  </div>
 </main>
 
 <footer>
@@ -176,135 +127,135 @@ footer{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+import { getDatabase, ref, get, update, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
   authDomain: "khanbaba-2d4e5.firebaseapp.com",
   databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
-  projectId: "khanbaba-2d4e5",
-  storageBucket: "khanbaba-2d4e5.appspot.com",
-  messagingSenderId: "343135387714",
-  appId: "1:343135387714:web:5fe330414f19546885eddb",
-  measurementId: "G-0EPPEJ4GVP"
+  projectId: "khanbaba-2d4e5"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const notification = document.getElementById('notification');
-const tasksContainer = document.getElementById('tasksContainer');
-const liveBalanceDiv = document.getElementById('liveBalance');
-const pageLoader = document.getElementById('pageLoader');
-const mainContent = document.querySelector('main');
+const pageLoader = document.getElementById("pageLoader");
+const taskOverlay = document.getElementById("taskOverlay");
+const taskTimerText = document.getElementById("taskTimerText");
+const tasksList = document.getElementById("tasksList");
+const notification = document.getElementById("notification");
+const liveBalance = document.getElementById("liveBalance");
 
 let currentUser = null;
-let userData = {}; // store user's last claim time and balance
 
 function showNotification(msg){
   notification.innerText = msg;
-  notification.style.display='block';
-  setTimeout(()=>{ notification.style.display='none'; },4000);
+  notification.style.display = "block";
+  setTimeout(()=>notification.style.display="none",4000);
 }
 
-onAuthStateChanged(auth, async user => {
-  if(user){
-    currentUser = user;
-    await loadUserData();
-    await loadTasks();
-    pageLoader.style.display = 'none';
-    mainContent.style.opacity = '1';
-  } else {
-    window.location.href='login.html';
-  }
-});
-
-async function loadUserData(){
-  const snap = await get(ref(db,'users/'+currentUser.uid));
-  userData = snap.val() || {};
-  if(!userData.earnClaims) userData.earnClaims = {};
-  updateLiveBalance();
+function updateBalance(bal){
+  liveBalance.innerText = bal;
 }
 
-function updateLiveBalance(){
-  liveBalanceDiv.innerText = `Balance: ${userData.balance || 0} PKR`;
-}
-
+// Load tasks
 async function loadTasks(){
-  const snap = await get(ref(db,'admin/earnTask'));
-  const tasks = snap.val() || {};
-  tasksContainer.innerHTML='';
+  const snap = await get(ref(db,"admin/earnTask"));
+  const tasksData = snap.val() || {};
+  tasksList.innerHTML = "";
 
-  const DAY_MS = 24*60*60*1000;
+  if(Object.keys(tasksData).length === 0){
+    tasksList.innerHTML = "<p>No tasks available yet.</p>";
+    return;
+  }
 
-  for(const taskId in tasks){
-    const task = tasks[taskId];
+  for(const key of Object.keys(tasksData)){
+    const task = tasksData[key];
+    const div = document.createElement("div");
+    div.className = "task-card";
 
-    const taskBox = document.createElement('div');
-    taskBox.className='task-box';
+    const btnId = `task-${key}`;
+    div.innerHTML = `<p>${task.desc} - Reward: PKR ${task.reward}</p><button id="${btnId}">Start Task</button>`;
+    tasksList.appendChild(div);
 
-    const descEl = document.createElement('p');
-    descEl.innerHTML = `<i class="fa-solid fa-star"></i> ${task.desc}`;
+    const btn = document.getElementById(btnId);
 
-    const rewardEl = document.createElement('p');
-    rewardEl.innerHTML = `<strong>Reward:</strong> ${task.reward} PKR`;
+    const lastSnap = await get(ref(db, `users/${currentUser.uid}/tasks/${key}`));
+    const lastTime = lastSnap.val()?.lastCompleted || 0;
+    const now = Date.now();
 
-    const claimBtn = document.createElement('button');
-    claimBtn.className='reward-btn';
-    claimBtn.innerHTML = `<i class="fa-solid fa-gift"></i> Claim Reward`;
-
-    const timerEl = document.createElement('div');
-    timerEl.className='timer-box';
-
-    taskBox.appendChild(descEl);
-    taskBox.appendChild(rewardEl);
-    taskBox.appendChild(claimBtn);
-    taskBox.appendChild(timerEl);
-    tasksContainer.appendChild(taskBox);
-
-    let lastClaim = userData.earnClaims[taskId] || 0;
-
-    function updateTimer(){
-      const now = Date.now();
-      const nextClaim = lastClaim + DAY_MS;
-      const remaining = nextClaim - now;
-      if(remaining<=0){
-        claimBtn.disabled=false;
-        timerEl.innerText = "Reward available now!";
-      } else {
-        claimBtn.disabled=true;
-        const h = Math.floor(remaining/3600000);
-        const m = Math.floor((remaining%3600000)/60000);
-        const s = Math.floor((remaining%60000)/1000);
-        timerEl.innerText = `Next reward in: ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      }
+    if(now - lastTime < 24*60*60*1000){
+      btn.disabled = true;
+      const remaining = 24*60*60*1000 - (now - lastTime);
+      const hours = Math.floor(remaining/3600000);
+      const minutes = Math.floor((remaining%3600000)/60000);
+      btn.innerText = `Available in ${hours}h ${minutes}m`;
     }
 
-    updateTimer();
-    setInterval(updateTimer,1000);
-
-    claimBtn.addEventListener('click', async ()=>{
-      const balance = userData.balance || 0;
-      const newBalance = balance + task.reward;
-
-      lastClaim = Date.now();
-      userData.balance = newBalance;
-      userData.earnClaims[taskId] = lastClaim;
-
-      await update(ref(db,'users/'+currentUser.uid),{balance:newBalance, earnClaims: userData.earnClaims});
-
-      showNotification(`Reward ${task.reward} PKR added!`);
-      updateTimer();
-      updateLiveBalance();
-    });
-  }
-
-  if(Object.keys(tasks).length===0){
-    tasksContainer.innerHTML='<p>No tasks available</p>';
+    btn.onclick = () => startTask(key, task.reward, btn);
   }
 }
-</script>
 
+// Start task
+function startTask(taskId, reward, btn){
+  taskOverlay.style.display = "flex";
+  let countdown = 10;
+  taskTimerText.innerText = `Task in progress... ${countdown}s`;
+  btn.disabled = true;
+
+  const interval = setInterval(()=>{
+    countdown--;
+    taskTimerText.innerText = `Task in progress... ${countdown}s`;
+    if(countdown<=0){
+      clearInterval(interval);
+      taskOverlay.style.display="none";
+      completeTask(taskId,reward,btn);
+    }
+  },1000);
+}
+
+// Complete task
+function completeTask(taskId,reward,btn){
+  const userRef = ref(db, `users/${currentUser.uid}`);
+  
+  // Use transaction to safely update balance
+  const balanceRef = ref(db, `users/${currentUser.uid}/balance`);
+  runTransaction(balanceRef, (current) => {
+    return (current || 0) + reward;
+  }).then(()=>{
+    // Update lastCompleted
+    update(ref(db, `users/${currentUser.uid}/tasks/${taskId}`), {
+      lastCompleted: Date.now()
+    });
+
+    // Balance will be updated automatically via onValue listener
+    showNotification(`Task completed! PKR ${reward} added to your balance.`);
+    btn.disabled = true;
+    btn.innerText = "Completed, available in 24h";
+  }).catch(err=>{
+    showNotification("Error updating balance, try again.");
+    btn.disabled = false;
+  });
+}
+
+// Auth
+onAuthStateChanged(auth,user=>{
+  if(user){
+    currentUser = user;
+    pageLoader.style.display="none";
+    document.querySelector("main").style.opacity = "1";
+
+    // Live balance listener
+    onValue(ref(db, `users/${currentUser.uid}/balance`), snap=>{
+      updateBalance(snap.val() || 0);
+    });
+
+    loadTasks();
+  } else{
+    window.location.href="login.html";
+  }
+});
+</script>
 </body>
 </html>
