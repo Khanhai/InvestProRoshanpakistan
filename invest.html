@@ -3,58 +3,418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Send Rs 100 to Wallet</title>
+<title>Invest | InvestPro</title>
+<link rel="icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 <style>
-body{font-family:sans-serif;text-align:center;padding:50px;background:#f7f7f7;}
-input{padding:10px;margin:10px;width:200px;}
-button{padding:10px 20px;background:#FFA500;color:#fff;border:none;border-radius:5px;cursor:pointer;}
-button:hover{background:#e69500;}
-#msg{margin-top:20px;font-weight:bold;}
+:root{
+  --primary-color:#FFA500;
+  --bg-color:#fff;
+  --text-color:#333;
+  --header-height:70px;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+body{background: var(--bg-color); color: var(--text-color); line-height:1.5; display:flex; flex-direction:column; min-height:100vh;}
+
+/* Page Loader & Request Overlay */
+#pageLoader, #requestOverlay{
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(255,255,255,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center;
+  z-index:3000;
+}
+#pageLoader .spinner, #requestOverlay .spinner{
+  width:60px; height:60px; border:5px solid #fff; border-top:5px solid var(--primary-color);
+  border-radius:50%; animation:spin 1s linear infinite; margin-bottom:1rem;
+}
+#pageLoader .text, #requestOverlay .text{color:var(--primary-color); font-weight:600; font-size:1rem; text-align:center;}
+
+/* Header */
+header{
+  height: var(--header-height);
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  padding:0 2rem;
+  background: var(--bg-color);
+  position: sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+header .logo{
+  font-size:1.5rem;
+  font-weight:700;
+  display:flex;
+  flex-direction: column;
+  line-height:1.1;
+  color: var(--primary-color);
+}
+header .logo small{font-size:0.8rem;font-weight:400;color:#555;}
+header .dashboard-btn{
+  background: var(--primary-color);
+  color:#fff;
+  padding:0.5rem 1.2rem;
+  border-radius:25px;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  font-weight:600;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+header .dashboard-btn:hover{transform:scale(1.05); box-shadow:0 4px 15px rgba(255,165,0,0.4);}
+
+/* Container */
+main{flex:1; opacity:0; transition: opacity 0.5s ease;}
+.invest-container{
+  max-width:900px;
+  margin:2rem auto;
+  padding:2rem;
+  background:#fff5e6;
+  border-radius:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+  animation:fadeIn 1s ease;
+}
+.invest-container h2{color: var(--primary-color); margin-bottom:1rem; text-align:center;}
+
+/* Payment Method Box */
+.payment-method-box{
+  background:#fff3e0;
+  border-left:5px solid var(--primary-color);
+  padding:0.6rem 1rem;
+  margin-bottom:0.6rem;
+  display:flex;
+  flex-direction:column;
+  gap:0.2rem;
+  border-radius:10px;
+  max-width:400px;
+  font-size:0.9rem;
+}
+.payment-method-box div{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.payment-method-box img{height:24px; margin-left:0.5rem;}
+
+/* Stylish Copy Button */
+.copy-btn{
+  padding:0.2rem 0.6rem;
+  background: var(--primary-color);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:0.75rem;
+  transition: all 0.3s ease;
+  box-shadow:0 2px 5px rgba(0,0,0,0.2);
+}
+.copy-btn:hover{transform:scale(1.1); box-shadow:0 4px 10px rgba(0,0,0,0.3); opacity:0.9;}
+.copy-btn:active{transform:scale(0.95); box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+
+/* Form */
+.form-group{display:flex; flex-direction: column; margin-bottom:1rem;}
+.form-group label{margin-bottom:0.3rem;font-weight:600;}
+.form-group input, .form-group select{
+  padding:0.7rem 1rem;
+  border:1px solid #ccc;
+  border-radius:10px;
+  outline:none;
+  transition:border 0.3s;
+}
+.form-group input:focus, .form-group select:focus{border-color: var(--primary-color);}
+
+.btn-container{position:relative; margin-top:1rem;}
+.submit-btn{
+  width:100%;
+  padding:1rem;
+  background: var(--primary-color);
+  color:#fff;
+  border:none;
+  border-radius:25px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.5rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.submit-btn:hover{transform:scale(1.03); box-shadow:0 6px 20px rgba(255,165,0,0.4);}
+.loader{
+  width:30px;
+  height:30px;
+  border:4px solid #fff;
+  border-top:4px solid rgba(255,165,0,0.7);
+  border-radius:50%;
+  animation: spin 1s linear infinite;
+  display:none;
+  position:absolute;
+  right:15px;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+/* History Table */
+.history-table-container{overflow-x:auto; margin-top:2rem;}
+.history-table{width:100%; border-collapse:collapse; min-width:700px;}
+.history-table th, .history-table td{border:1px solid #ddd; padding:0.5rem; text-align:center;}
+.history-table th{background: var(--primary-color); color:#fff; font-weight:600;}
+.status-pending{color:#ff9900; font-weight:600;}
+.status-approved{color:green; font-weight:600;}
+.status-rejected{color:red; font-weight:600;}
+
+/* Footer */
+footer{
+  background: #fff5e6;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@media(max-width:768px){
+  .invest-container{margin:1rem;}
+  .history-table th, .history-table td{padding:0.4rem; font-size:0.85rem;}
+}
 </style>
 </head>
 <body>
 
-<h2>Send Rs 100 to Wallet</h2>
+<!-- Page Loader -->
+<div id="pageLoader">
+  <div class="spinner"></div>
+  <div class="text">Loading Invest Page...</div>
+</div>
 
-<input type="text" id="name" placeholder="Your Name"><br>
-<input type="text" id="wallet" placeholder="Wallet Number"><br>
-<button id="payBtn">Send Rs 100</button>
+<!-- Investment Request Overlay -->
+<div id="requestOverlay" style="display:none;">
+  <div class="spinner"></div>
+  <div class="text">Sending Investment Request...</div>
+</div>
 
-<div id="msg"></div>
+<header>
+  <div class="logo">InvestPro<br><small>Roshan Pakistan</small></div>
+  <a href="dashboard.html" class="dashboard-btn"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+</header>
 
-<script>
-const payBtn = document.getElementById("payBtn");
-const msg = document.getElementById("msg");
+<main>
+<div class="invest-container animate__animated animate__fadeIn">
+  <h2><i class="fa-solid fa-wallet"></i> Invest Now</h2>
 
-payBtn.onclick = async () => {
-    const name = document.getElementById("name").value.trim();
-    const wallet = document.getElementById("wallet").value.trim();
+  <div id="paymentMethodsBox"></div>
 
-    if(!name || !wallet){
-        msg.innerText = "Please enter both Name and Wallet Number!";
-        return;
-    }
+  <!-- Fixed Investment Amount -->
+  <div class="form-group">
+    <label for="amount"><i class="fa-solid fa-money-bill"></i> Amount (PKR)</label>
+    <input type="text" id="amount" value="200" readonly>
+  </div>
 
-    msg.innerText = "Processing payment...";
+  <div class="form-group">
+    <label for="name"><i class="fa-solid fa-user"></i> Name</label>
+    <input type="text" id="name" placeholder="Enter your name" required>
+  </div>
 
-    try{
-        const res = await fetch("https://us-central1-YOUR_FIREBASE_PROJECT.cloudfunctions.net/sendPayment", {
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({ name, wallet, amount:100 })
-        });
+  <div class="form-group">
+    <label for="number"><i class="fa-solid fa-phone"></i> Number</label>
+    <input type="text" id="number" placeholder="Enter your mobile number" required>
+  </div>
 
-        const data = await res.json();
-        if(data.success){
-            msg.innerText = "✅ Payment sent successfully!";
-        }else{
-            msg.innerText = "❌ Payment failed: " + (data.error || "Unknown error");
-        }
-    }catch(err){
-        msg.innerText = "❌ Error: " + err.message;
-    }
+  <div class="form-group">
+    <label for="type"><i class="fa-solid fa-credit-card"></i> Payment Type</label>
+    <select id="type" required>
+      <option value="">Select</option>
+      <option value="JazzCash">JazzCash</option>
+      <option value="EasyPaisa">EasyPaisa</option>
+      <option value="Bank">Bank</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label><i class="fa-solid fa-image"></i> Upload Image (optional)</label>
+    <input type="file" id="proof" accept="image/*" capture="environment">
+  </div>
+
+  <div class="btn-container">
+    <button class="submit-btn" id="submitBtn">
+      <i class="fa-solid fa-paper-plane"></i> Send Investment Request
+    </button>
+  </div>
+
+  <div class="history-table-container">
+    <table class="history-table animate__animated animate__fadeInUp" id="historyTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount (PKR)</th>
+          <th>Type</th>
+          <th>Number</th>
+          <th>Proof</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="6">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</main>
+
+<footer>
+  &copy; 2025 InvestPro. All rights reserved.
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getDatabase, ref, get, push, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
+  authDomain: "khanbaba-2d4e5.firebaseapp.com",
+  databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
+  projectId: "khanbaba-2d4e5"
 };
-</script>
 
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const historyBody = document.getElementById("historyBody");
+const paymentBox = document.getElementById("paymentMethodsBox");
+const pageLoader = document.getElementById("pageLoader");
+const mainContent = document.querySelector("main");
+const requestOverlay = document.getElementById("requestOverlay");
+let currentUser = null;
+
+// Copy Number Function
+window.copyNumber = function(number, btn){
+  navigator.clipboard.writeText(number).then(()=>{
+    btn.innerText="Copied!";
+    setTimeout(()=>{ btn.innerText="Copy"; },1500);
+  });
+};
+
+// Load payment methods
+async function loadPaymentMethods(){
+  const snap = await get(ref(db,"admin/investMethods"));
+  const data = snap.val() || {};
+  paymentBox.innerHTML = "";
+  if(!Object.keys(data).length){
+    paymentBox.innerHTML = "<div class='payment-method-box'>No payment method available</div>";
+    return;
+  }
+  for(const key in data){
+    const m = data[key];
+    let logoSrc="";
+    if(m.type==="EasyPaisa") logoSrc="123.jpeg";
+    else if(m.type==="JazzCash") logoSrc="1234.jpeg";
+    paymentBox.innerHTML += `
+      <div class="payment-method-box">
+        <div><strong>${m.type}</strong> ${logoSrc?`<img src="${logoSrc}" alt="${m.type}">`:''}</div>
+        <div>Name: ${m.name}</div>
+        <div>Number: ${m.number} <button class="copy-btn" onclick="copyNumber('${m.number}', this)">Copy</button></div>
+      </div>`;
+  }
+}
+
+// Fetch history
+async function fetchHistory(){
+  if(!currentUser) return;
+  const snap = await get(ref(db,"investments/"+currentUser.uid));
+  const data = snap.val() || {};
+  historyBody.innerHTML="";
+  const records = Object.values(data);
+  if(records.length===0){
+    historyBody.innerHTML="<tr><td colspan='6'>No investment history yet.</td></tr>";
+    return;
+  }
+  records.sort((a,b)=> (b.timestamp||0) - (a.timestamp||0));
+  records.forEach(inv=>{
+    let statusClass="";
+    if(inv.status==="Pending") statusClass="status-pending";
+    else if(inv.status==="Approved") statusClass="status-approved";
+    else if(inv.status==="Rejected") statusClass="status-rejected";
+    const dateStr = new Date(inv.timestamp).toLocaleString("en-PK",{dateStyle:"medium",timeStyle:"short"});
+    const proofHTML = inv.proof?`<img src="${inv.proof}" width="50" style="border-radius:5px;">`:"No Proof";
+    historyBody.innerHTML += `
+      <tr>
+        <td>${dateStr}</td>
+        <td>${inv.amount}</td>
+        <td>${inv.type}</td>
+        <td>${inv.number || ''}</td>
+        <td>${proofHTML}</td>
+        <td class="${statusClass}">${inv.status}</td>
+      </tr>`;
+  });
+
+  // Check for approved investments to add 50 PKR
+  Object.values(data).forEach(async inv => {
+    if(inv.status==="Approved"){
+      const flagRef = ref(db, 'users/' + currentUser.uid + '/added50pkr');
+      const flagSnap = await get(flagRef);
+      if(!flagSnap.val()){ // only add once
+        const balanceRef = ref(db, 'users/' + currentUser.uid + '/balance');
+        const balSnap = await get(balanceRef);
+        const bal = parseFloat(balSnap.val() || 0);
+        await update(ref(db, 'users/' + currentUser.uid), { balance: bal + 50, added50pkr: true });
+        alert("+50 PKR added to your balance as your investment is approved!");
+      }
+    }
+  });
+}
+
+// Auth
+onAuthStateChanged(auth,user=>{
+  if(user){
+    currentUser=user;
+    loadPaymentMethods();
+    fetchHistory();
+    pageLoader.style.display="none";
+    mainContent.style.opacity="1";
+  } else window.location.href="login.html";
+});
+
+// Submit Investment
+document.getElementById("submitBtn").addEventListener("click", async ()=>{
+  const name=document.getElementById("name").value.trim();
+  const number=document.getElementById("number").value.trim();
+  const type=document.getElementById("type").value;
+  const proofFile=document.getElementById("proof").files[0]||null;
+  if(!name || !number || !type){ alert("Please fill all required fields"); return; }
+
+  requestOverlay.style.display="flex"; // show overlay
+
+  let proofBase64=null;
+  if(proofFile){
+    proofBase64=await new Promise(resolve=>{
+      const reader=new FileReader();
+      reader.onload=e=>resolve(e.target.result);
+      reader.readAsDataURL(proofFile);
+    });
+  }
+
+  const amount = 200; // fixed amount
+  const newRef = push(ref(db,"investments/"+currentUser.uid));
+  await set(newRef,{
+    amount: amount,
+    name,
+    number,
+    type,
+    status:"Pending",
+    proof:proofBase64,
+    timestamp: Date.now()
+  });
+
+  setTimeout(()=>{
+    requestOverlay.style.display="none";
+    fetchHistory();
+    alert("Investment request sent successfully.");
+  },800);
+});
+</script>
 </body>
-</html>
+    </html>
