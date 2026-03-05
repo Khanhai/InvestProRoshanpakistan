@@ -233,9 +233,10 @@ footer{
   </div>
 
   <div class="form-group">
-    <label><i class="fa-solid fa-image"></i> Upload Image (optional)</label>
-    <input type="file" id="proof" accept="image/*" capture="environment">
-  </div>
+  <label><i class="fa-solid fa-image"></i> Upload Image (optional)</label>
+  <!-- Removed capture attribute so user can select from files only -->
+  <input type="file" id="proof" accept="image/*">
+</div>
 
   <div class="btn-container">
     <button class="submit-btn" id="submitBtn">
