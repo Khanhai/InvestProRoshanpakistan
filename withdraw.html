@@ -190,7 +190,6 @@ footer{background:var(--card);padding:1.5rem;text-align:center;color:#555;flex-s
 <footer>
 &copy; 2025 InvestPro. All rights reserved.
 </footer>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
@@ -269,7 +268,6 @@ onAuthStateChanged(auth,user=>{
     pageLoader.style.display="none";
     main.style.opacity="1";
 
-    // Auto-update on admin changes
     onValue(ref(db,"withdrawals/"+currentUser.uid), snapshot=>{
       fetchHistory();
       updateBalance();
@@ -306,7 +304,13 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   }
 
   // Deduct temporarily
-  await update(ref(db,"users/"+currentUser.uid), { balance: balance - amount });
+  const withdrawSnap = await get(ref(db,"users/"+currentUser.uid+"/withdrawBalance"));
+  const currentWithdraw = withdrawSnap.val() || 0;
+
+  await update(ref(db,"users/"+currentUser.uid), {
+    balance: balance - amount,
+    withdrawBalance: currentWithdraw + amount
+  });
 
   requestOverlay.style.display="flex";
 
