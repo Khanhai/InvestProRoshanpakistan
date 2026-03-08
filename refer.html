@@ -123,12 +123,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyC-VDLeGkVEHRx3bu1SUAwvv8t6Y6Fz0Dg",
   authDomain: "khanbaba-2d4e5.firebaseapp.com",
   databaseURL: "https://khanbaba-2d4e5-default-rtdb.firebaseio.com",
   projectId: "khanbaba-2d4e5"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
@@ -139,20 +141,17 @@ const referralBody = document.getElementById('referralBody');
 const totalReferralsEl = document.getElementById('totalReferrals');
 const approvedReferralsEl = document.getElementById('approvedReferrals');
 const referralEarningsEl = document.getElementById('referralEarnings');
-const refCodeEl = document.getElementById('refCode');
-const copyBtn = document.getElementById('copyBtn');
 
+// Auth check
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href='login.html';
   currentUser = user;
 
-  // Set user's referral code (you can generate or fetch from DB)
-  refCodeEl.innerText = user.uid.slice(0,8); // Example: first 8 chars of UID
-
   const referralRef = ref(db, 'referrals/' + currentUser.uid);
   const userBalanceRef = ref(db, 'users/' + currentUser.uid);
 
-  onValue(referralRef, async (snap) => {
+  // Listen for live updates
+  onValue(referralRef, (snap) => {
     const referrals = snap.val() || {};
     referralBody.innerHTML = '';
     let total = 0, approved = 0, earnings = 0;
@@ -161,13 +160,17 @@ onAuthStateChanged(auth, async (user) => {
       const r = referrals[uid];
       const status = r.investmentApproved ? 'Approved' : 'Pending';
       const reward = r.investmentApproved ? 200 : 0;
-      if (r.investmentApproved) { approved++; earnings += reward; }
+
+      if (r.investmentApproved) {
+        approved++;
+        earnings += reward;
+      }
       total++;
 
       referralBody.innerHTML += `
         <tr>
-          <td>${r.name}</td>
-          <td>${r.email}</td>
+          <td>${r.name || '-'}</td>
+          <td>${r.email || '-'}</td>
           <td class="status-${status.toLowerCase()}">${status}</td>
           <td>${reward}</td>
         </tr>
@@ -180,14 +183,6 @@ onAuthStateChanged(auth, async (user) => {
 
     // Update live referral balance in user data
     update(userBalanceRef, { refBalance: earnings });
-  });
-});
-
-// Copy referral code
-copyBtn.addEventListener('click', () => {
-  navigator.clipboard.writeText(refCodeEl.innerText).then(() => {
-    copyBtn.innerText = 'Copied!';
-    setTimeout(() => { copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy'; }, 2000);
   });
 });
 </script>
